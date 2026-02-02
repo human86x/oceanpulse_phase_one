@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About ADT Oversight - OceanPulse</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body { background-color: #0d1117; color: #e6edf3; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        .card { background-color: #161b22; border-color: #30363d; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        .card-header { background-color: #21262d; border-bottom-color: #30363d; font-weight: 600; color: #58a6ff; }
+        .text-accent { color: #58a6ff !important; font-weight: 600; }
+        .text-adt { color: #3fb950 !important; }
+        
+        /* NUCLEAR OPTION FOR VISIBILITY */
+        .text-muted, .text-secondary, small, p, li, dd { color: #e6edf3 !important; }
+        
+        h2, h3, h4, h5, h6 { color: #f0f6fc !important; margin-top: 1.5rem; }
+        h2 { margin-top: 0; }
+        
+        a { color: #58a6ff !important; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        .practice-tag { font-family: monospace; background: #30363d; padding: 2px 6px; border-radius: 4px; color: #58a6ff; border: 1px solid #58a6ff; }
+        dt { color: #58a6ff !important; }
+        dd { margin-bottom: 1rem; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-dark bg-dark border-bottom border-secondary">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">
+                <i class="bi bi-arrow-left"></i> Back to Panel
+            </a>
+            <span class="navbar-text text-light">
+                Understanding the Machine
+            </span>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-lg-8 offset-lg-2">
+                
+                <!-- Intro -->
+                <div class="card">
+                    <div class="card-body">
+                        <h2 class="card-title text-center mb-4">What is this System?</h2>
+                        <p class="lead text-center">
+                            This panel demonstrates the <strong>Advanced Digital Transformation (ADT)</strong> approach in action, blending governance-native protocols with the latest development technologies and innovative solutions.
+                        </p>
+                        <p class="text-center">
+                            While specialized <strong>AI Virtual Agents</strong> serve as the project's workforce, the core focus is the framework itself—ensuring compliance, transparency, and architectural integrity by design.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Departments -->
+                <div class="card">
+                    <div class="card-header"><i class="bi bi-people"></i> Virtual Workforce</div>
+                    <div class="card-body">
+                        <p>The project is built by <strong>10 specialized AI roles</strong> working in concert. No single agent "does everything." Instead, they delegate based on expertise:</p>
+                        <div class="row text-center mt-3">
+                            <div class="col-md-4 mb-3">
+                                <div class="p-3 border border-secondary rounded">
+                                    <h5 class="text-accent">Leadership</h5>
+                                    <small>Systems Architect, Overseer, Product Manager</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="p-3 border border-secondary rounded">
+                                    <h5 class="text-warning">Engineering</h5>
+                                    <small>Embedded, Electrical, Mechanical, Network</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="p-3 border border-secondary rounded">
+                                    <h5 class="text-success">Software</h5>
+                                    <small>Backend, Frontend, DevOps</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ADT Principles -->
+                <div class="card">
+                    <div class="card-header"><i class="bi bi-shield-lock"></i> ADT Principles (Paul Sheridan)</div>
+                    <div class="card-body">
+                        <p>The system adheres to <strong>Governance-Native</strong> development. Governance is not a meeting; it is code.</p>
+                        <ul>
+                            <li class="mb-2">
+                                <strong>The ADS (Authoritative Data Source):</strong> 
+                                A single, append-only ledger (<span class="practice-tag">events.jsonl</span>) that records <em>every</em> action. If it's not in the ADS, it didn't happen.
+                            </li>
+                            <li class="mb-2">
+                                <strong>Compliance by Construction:</strong> 
+                                Agents cannot "break the rules" because the rules are part of their runtime environment. Unauthorized actions are physically blocked.
+                            </li>
+                            <li class="mb-2">
+                                <strong>Transparency:</strong> 
+                                This dashboard renders the ADS in real-time. You see exactly what the AI sees. No hidden states.
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Glossary -->
+                <div class="card">
+                    <div class="card-header"><i class="bi bi-book"></i> The Practices</div>
+                    <div class="card-body">
+                        <dl class="row">
+                            <dt class="col-sm-4 text-accent">_cortex</dt>
+                            <dd class="col-sm-8">The "brain" folder of the project. Contains the memories, plans, specs, and the ADS ledger. It is the shared consciousness of the Hive Mind.</dd>
+
+                            <dt class="col-sm-4 text-accent">Spec-Driven Development (SDD)</dt>
+                            <dd class="col-sm-8">A strict rule: <strong>"No Spec, No Code."</strong> Agents must write a Specification Document (Spec) and get approval before writing a single line of implementation code.</dd>
+
+                            <dt class="col-sm-4 text-accent">The Overseer</dt>
+                            <dd class="col-sm-8">A specialized role dedicated solely to compliance, logging, and truth-telling. The Overseer does not build; it watches.</dd>
+
+                            <dt class="col-sm-4 text-accent">Hive Mind</dt>
+                            <dd class="col-sm-8">The architecture where multiple distinct AI agents (Claude, Gemini) access the same file system and context to work as a single team.</dd>
+                        </dl>
+                    </div>
+                </div>
+
+                <div class="text-center mt-4 mb-5">
+                    <a href="index.html" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Return to Mission Control
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</body>
+</html>

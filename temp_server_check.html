@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OceanPulse: Port Sentry Buoy - Virtual Model</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link href="assets/css/style.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-ocean-dark fixed-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <span style="color:var(--ocean-orange)">Ocean</span>Pulse <small class="text-muted">| Virtual Twin v1.0</small>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="hero-section text-center text-white d-flex align-items-center justify-content-center">
+        <div class="container">
+            <h1 class="display-4 fw-bold">Port Sentry Buoy (Phase 1)</h1>
+            <p class="lead">Autonomous Oil Spill Detection & Marine Telemetry</p>
+            <div class="mt-4">
+                <span class="badge bg-success me-2">Autonomy: ~3 Days (Winter)</span>
+                <span class="badge bg-primary me-2">Dual-Redundant</span>
+                <span class="badge bg-warning text-dark">Budget: < €1.8k</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container mt-5">
+        
+        <!-- Tabs -->
+        <ul class="nav nav-tabs" id="myTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="diagram-tab" data-bs-toggle="tab" data-bs-target="#diagram" type="button" role="tab">System Architecture</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="power-tab" data-bs-toggle="tab" data-bs-target="#power" type="button" role="tab">Power Simulator</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="bom-tab" data-bs-toggle="tab" data-bs-target="#bom" type="button" role="tab">Bill of Materials</button>
+            </li>
+        </ul>
+
+        <div class="tab-content p-4 border border-top-0 bg-white shadow-sm" id="myTabContent">
+            
+            <!-- TAB 1: Architecture Diagram -->
+            <div class="tab-pane fade show active" id="diagram" role="tabpanel">
+                <div class="row">
+                    <div class="col-lg-8">
+                        <h4 class="mb-3">Interactive Schematic</h4>
+                        <p class="text-muted small">Hover over nodes to see component details.</p>
+                        <div class="mermaid-container">
+                            <pre class="mermaid" id="buoyDiagram">
+graph TD
+    %% ==========================================
+    %% CENTRAL POWER BANK
+    %% ==========================================
+    subgraph PowerBank[Central Power Source]
+        Solar[Solar Panel Array<br/>2x 60W Parallel] --> MPPT[MPPT Controller<br/>15A]
+        MPPT --> Batt[LiFePO4 Battery<br/>12V 50Ah]
+        Batt ==> MainBus((12V Common Bus))
+    end
+    
+    %% ==========================================
+    %% SYSTEM A: MISSION CIRCUIT
+    %% ==========================================
+    subgraph SysA[SYSTEM A: MISSION CIRCUIT]
+        MainBus --> RelayB_Contact[NC Relay B Contact]
+        RelayB_Contact --> BuckA[5V Buck Converter A]
+        BuckA ==> Pi5[Raspberry Pi 5]
+        BuckA ==> ArdA[Arduino Mega A]
+        
+        Pi5 -- CSI --> Cam[DFRobot IMX378]
+        Pi5 -- USB --> ArdA
+        
+        ArdA -- Relay --> UV_Relay[Relay / SSR]
+        UV_Relay --> UV_LED[100W UV Floodlight<br/>365nm Strobe]
+        
+        subgraph WaterSensors[Underwater Sensors]
+            DO[Dissolved Oxygen] --> ArdA
+            Sal[Salinity Inductive] --> ArdA
+            TempA[Water Temp] --> ArdA
+            Depth[Depth Sensor] --> ArdA
+        end
+        
+        Pi5 -- SPI --> LoRaA[LoRa E5 Mini A]
+        ArdA -- Digital --> RelayA_Coil[Relay A Coil]
+    end
+    
+    %% ==========================================
+    %% SYSTEM B: HEALTH CIRCUIT
+    %% ==========================================
+    subgraph SysB[SYSTEM B: HEALTH CIRCUIT]
+        MainBus --> RelayA_Contact[NC Relay A Contact]
+        RelayA_Contact --> BuckB[5V Buck Converter B]
+        BuckB ==> UPS[UPS HAT] ==> Pi3[Raspberry Pi 3]
+        BuckB ==> ArdB[Arduino Mega B]
+        
+        Pi3 -- USB --> ArdB
+        
+        subgraph InternalSensors[Internal Health]
+            Hum[Humidity/Temp] --> ArdB
+            Leak[Bilge Switch] --> ArdB
+            IMU[BNO055 Tilt] --> ArdB
+        end
+        
+        Pi3 -- SPI --> LoRaB[LoRa E5 Mini B]
+        ArdB -- Digital --> RelayB_Coil[Relay B Coil]
+    end
+    
+    RelayA_Coil -.->|Cuts Power| RelayA_Contact
+    RelayB_Coil -.->|Cuts Power| RelayB_Contact
+
+    classDef pwr fill:#f96,stroke:#333,stroke-width:2px;
+    classDef sbc fill:#69f,stroke:#333,stroke-width:2px,color:white;
+    classDef mcu fill:#6f9,stroke:#333,stroke-width:2px;
+    classDef sens fill:#eee,stroke:#333,stroke-width:1px,stroke-dasharray: 5 5;
+    classDef relay fill:#f66,stroke:#333,stroke-width:2px,color:white;
+    
+    class Solar,MPPT,Batt,MainBus,BuckA,BuckB,UPS pwr;
+    class Pi5,Pi3 sbc;
+    class ArdA,ArdB mcu;
+    class WaterSensors,InternalSensors sens;
+    class RelayA_Coil,RelayB_Coil,RelayA_Contact,RelayB_Contact,UV_Relay relay;
+                            </pre>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="card info-panel">
+                            <div class="card-header bg-ocean-orange text-white">Component Details</div>
+                            <div class="card-body" id="nodeInfo">
+                                <p class="text-center text-muted"><em>Hover over a schematic element to see specs, costs, and details here.</em></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: Power Simulator -->
+            <div class="tab-pane fade" id="power" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h4>Simulation Controls</h4>
+                        <div class="mb-3">
+                            <label class="form-label">Solar Conditions</label>
+                            <select class="form-select" id="seasonSelect">
+                                <option value="winter">Winter (Sagres) - 2.5 PSH</option>
+                                <option value="summer">Summer (Sagres) - 7.0 PSH</option>
+                                <option value="storm">Storm Mode (0.5 PSH)</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Battery Capacity (Ah)</label>
+                            <input type="range" class="form-range" min="20" max="100" value="50" id="battRange" oninput="updatePowerCalc()">
+                            <span id="battVal">50 Ah</span>
+                        </div>
+                        <hr>
+                        <h5>Daily Energy Budget</h5>
+                        <ul class="list-group list-group-flush" id="powerStats">
+                            <!-- JS will populate -->
+                        </ul>
+                    </div>
+                    <div class="col-md-6 d-flex align-items-center justify-content-center">
+                        <div class="text-center">
+                            <h1 class="display-1 fw-bold" id="autonomyDisplay">3.5</h1>
+                            <p class="lead">Days of Autonomy</p>
+                            <div class="progress mt-3" style="height: 30px;">
+                                <div id="battBar" class="progress-bar bg-success" role="progressbar" style="width: 100%;">100%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: Bill of Materials -->
+            <div class="tab-pane fade" id="bom" role="tabpanel">
+                <h4>Hardware Procurement</h4>
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped" id="bomTable">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Category</th>
+                                <th>Item</th>
+                                <th>Est. Cost</th>
+                                <th>Status</th>
+                                <th>Link</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- 0. Compute -->
+                            <tr>
+                                <td><span class="badge bg-secondary">Compute</span></td>
+                                <td>Raspberry Pi 5 4GB (Mission)</td>
+                                <td>€74.42</td>
+                                <td><span class="badge bg-warning text-dark">Pending</span></td>
+                                <td><a href="https://mauser.pt/095-5004/raspberry-pi-sc1111-microcomputador-raspberry-pi-5-4gb" target="_blank" class="btn btn-sm btn-outline-primary">View Product</a></td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-secondary">Compute</span></td>
+                                <td>JOY-IT Active Cooler (Pi 5)</td>
+                                <td>€6.90</td>
+                                <td><span class="badge bg-warning text-dark">Pending</span></td>
+                                <td><a href="https://mauser.pt/095-4736/joy-it-rb-heatsink5-dissipador-com-ventoinha-para-raspberry-pi-5" target="_blank" class="btn btn-sm btn-outline-primary">View Product</a></td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-secondary">Compute</span></td>
+                                <td>JOY-IT 3.5" Touchscreen</td>
+                                <td>€22.98</td>
+                                <td><span class="badge bg-warning text-dark">Pending</span></td>
+                                <td><a href="https://mauser.pt/096-7662/joy-it-display-lcd-3-5-480x320-touchscreen-compativel-com-raspberry-pi" target="_blank" class="btn btn-sm btn-outline-primary">View Product</a></td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-secondary">Compute</span></td>
+                                <td>MicroSD 128GB (x2)</td>
+                                <td>€27.10</td>
+                                <td><span class="badge bg-warning text-dark">Pending</span></td>
+                                <td><a href="https://mauser.pt/047-2897/kingston-sdcs2-128gb-cartao-de-memoria-microsdxc-128gb-classe-10-uhs-i-adaptador-sd-canvas-select" target="_blank" class="btn btn-sm btn-outline-primary">View Product</a></td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-secondary">Compute</span></td>
+                                <td>Raspberry Pi 3 B+ (Health)</td>
+                                <td>€40.00</td>
+                                <td><span class="badge bg-warning text-dark">Pending</span></td>
+                                <td><a href="https://www.google.com/search?q=Raspberry+Pi+3+Model+B%2B&tbm=shop" target="_blank" class="btn btn-sm btn-outline-primary">Buy/Search</a></td>
+                            </tr>
+
+                            <!-- 1. Power -->
+                            <tr>
+                                <td><span class="badge bg-danger">Power</span></td>
+                                <td>Solar Panels (2x Offgridtec 60W ETFE-AL)</td>
+                                <td>€98.00</td>
+                                <td><span class="badge bg-warning text-dark">Pending</span></td>
+                                <td><a href="https://greenboatsolutions.com/shop/accessories/solar-panels/offgridtec-etfe-al-60w-v2-semi-flexible-18v-solarpanel.html" target="_blank" class="btn btn-sm btn-outline-primary">View Product</a></td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-danger">Power</span></td>
+                                <td>LiFePO4 Battery (Green Cell 50Ah)</td>
+                                <td>€154.00</td>
+                                <td><span class="badge bg-warning text-dark">Pending</span></td>
+                                <td><a href="https://mauser.pt/115-0057/green-cell-lfpgc12v50ah-bateria-de-lithium-lifepo4-bms-12-8v-640wh-50a" target="_blank" class="btn btn-sm btn-outline-primary">View Product</a></td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-danger">Power</span></td>
+                                <td>MPPT Controller (Victron BlueSolar 75/15)</td>
+                                <td>€71.70</td>
+                                <td><span class="badge bg-warning text-dark">Pending</span></td>
+                                <td><a href="https://mauser.pt/095-3813/victron-energy-bluesolar-mppt-75-15-scc010015050r-controlador-de-carga-solar-mppt-75v-12-24v-15a" target="_blank" class="btn btn-sm btn-outline-primary">View Product</a></td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-danger">Power</span></td>
+                                <td>DIY VE.Direct Link (USB-TTL + Cable)</td>
+                                <td>€2.70</td>
+                                <td><span class="badge bg-warning text-dark">Pending</span></td>
+                                <td><a href="https://mauser.pt/096-7520/conversor-usb-para-serial-ttl-rs232-pl2303" target="_blank" class="btn btn-sm btn-outline-primary">View Product</a></td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-danger">Power</span></td>
+                                <td>UPS HAT for Pi 3 (System B)</td>
+                                <td>€25.00</td>
+                                <td><span class="badge bg-warning text-dark">Pending</span></td>
+                                <td><a href="https://www.google.com/search?q=Raspberry+Pi+UPS+HAT+18650&tbm=shop" target="_blank" class="btn btn-sm btn-outline-primary">Buy/Search</a></td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-danger">Power</span></td>
+                                <td>18650 Li-ion Cell (3000mAh)</td>
+                                <td>€5.00</td>
+                                <td><span class="badge bg-warning text-dark">Pending</span></td>
+                                <td><a href="https://www.google.com/search?q=18650+battery+3000mAh+high+drain&tbm=shop" target="_blank" class="btn btn-sm btn-outline-primary">Buy/Search</a></td>
+                            </tr>
+
+                            <!-- 2. Vision -->
+                            <tr>
+                                <td><span class="badge bg-primary">Vision</span></td>
+                                <td>DFRobot IMX378 12.3MP (190° Wide)</td>
+                                <td>€39.40</td>
+                                <td><span class="badge bg-warning text-dark">Pending</span></td>
+                                <td><a href="https://mauser.pt/095-5262/dfrobot-sen0633-modulo-de-camera-grande-angular-imx378-190-12-3mp-p-raspberry-pi-4b-5-4056x3040-fov190" target="_blank" class="btn btn-sm btn-outline-primary">View Product</a></td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-primary">Vision</span></td>
+                                <td>IP68 Waterproof Camera Housing</td>
+                                <td>€15.00</td>
+                                <td><span class="badge bg-warning text-dark">Pending</span></td>
+                                <td><a href="https://www.google.com/search?q=Raspberry+Pi+Camera+waterproof+case+IP68&tbm=shop" target="_blank" class="btn btn-sm btn-outline-primary">Buy/Search</a></td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-primary">Vision</span></td>
+                                <td>UV Floodlight (100W 365nm)</td>
+                                <td>€80.00</td>
+                                <td><span class="badge bg-warning text-dark">Pending</span></td>
+                                <td><a href="https://www.google.com/search?q=100W+365nm+UV+LED+floodlight+curing&tbm=shop" target="_blank" class="btn btn-sm btn-outline-primary">Buy/Search</a></td>
+                            </tr>
+
+                            <!-- 3. Sensors -->
+                            <tr>
+                                <td><span class="badge bg-info text-dark">Sensors</span></td>
+                                <td>Atlas Scientific Conductivity K 1.0 Kit</td>
+                                <td>€252.99</td>
+                                <td><span class="badge bg-warning text-dark">Pending</span></td>
+                                <td><a href="https://eu.robotshop.com/products/atlas-scientific-conductivity-sensor-k-10-kit" target="_blank" class="btn btn-sm btn-outline-primary">View Product</a></td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-info text-dark">Sensors</span></td>
+                                <td>Atlas Scientific Dissolved Oxygen Kit</td>
+                                <td>€390.45</td>
+                                <td><span class="badge bg-warning text-dark">Pending</span></td>
+                                <td><a href="https://eu.robotshop.com/products/atlas-scientific-dissolved-oxygen-sensor-kit" target="_blank" class="btn btn-sm btn-outline-primary">View Product</a></td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-info text-dark">Sensors</span></td>
+                                <td>Blue Robotics Bar30 R2 Depth/Pressure</td>
+                                <td>€99.00</td>
+                                <td><span class="badge bg-warning text-dark">Pending</span></td>
+                                <td><a href="https://eu.robotshop.com/products/bar30-high-resolution-300m-depth-pressure-sensor-r2" target="_blank" class="btn btn-sm btn-outline-primary">View Product</a></td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-info text-dark">Sensors</span></td>
+                                <td>Adafruit BNO055 Absolute Orientation IMU</td>
+                                <td>€35.00</td>
+                                <td><span class="badge bg-warning text-dark">Pending</span></td>
+                                <td><a href="https://www.adafruit.com/product/2472" target="_blank" class="btn btn-sm btn-outline-primary">View Product</a></td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-info text-dark">Sensors</span></td>
+                                <td>BME280 Hum/Temp/Pres (x3)</td>
+                                <td>€15.00</td>
+                                <td><span class="badge bg-warning text-dark">Pending</span></td>
+                                <td><a href="https://www.google.com/search?q=BME280+sensor+module+arduino&tbm=shop" target="_blank" class="btn btn-sm btn-outline-primary">Buy/Search</a></td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-info text-dark">Sensors</span></td>
+                                <td>INA219 Voltage/Current (x4)</td>
+                                <td>€20.00</td>
+                                <td><span class="badge bg-warning text-dark">Pending</span></td>
+                                <td><a href="https://www.google.com/search?q=INA219+voltage+current+sensor&tbm=shop" target="_blank" class="btn btn-sm btn-outline-primary">Buy/Search</a></td>
+                            </tr>
+
+                            <!-- 4. Connectivity -->
+                            <tr>
+                                <td><span class="badge bg-dark">Comms</span></td>
+                                <td>Arduino Mega 2560 R3 (x2)</td>
+                                <td>€40.00</td>
+                                <td><span class="badge bg-warning text-dark">Pending</span></td>
+                                <td><a href="https://mauser.pt/095-7132/joy-it-ard-mega2560r3-p-microcontrolador-compativel-com-arduino-mega-2560r3-c-cristal-de-alta-precisao" target="_blank" class="btn btn-sm btn-outline-primary">View Product</a></td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-dark">Comms</span></td>
+                                <td>Seeed LoRa-E5 Mini (x2)</td>
+                                <td>€55.60</td>
+                                <td><span class="badge bg-warning text-dark">Pending</span></td>
+                                <td><a href="https://mauser.pt/096-9675/seeed-placa-de-desenvolvimento-lora-e5-mini-stm32wle5jc-c-banda-de-frequencia-global" target="_blank" class="btn btn-sm btn-outline-primary">View Product</a></td>
+                            </tr>
+
+                            <!-- 5. Wiring & Hull -->
+                            <tr>
+                                <td><span class="badge bg-secondary">Wiring</span></td>
+                                <td>Weipu SP21/SP13 IP68 Connectors (7 Sets)</td>
+                                <td>€110.00</td>
+                                <td><span class="badge bg-warning text-dark">Pending</span></td>
+                                <td><a href="https://mauser.pt/catalog/advanced_search_result.php?keywords=SP21" target="_blank" class="btn btn-sm btn-outline-primary">View Product</a></td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-secondary">Wiring</span></td>
+                                <td>Logic Level Shifters (3.3V/5V)</td>
+                                <td>€5.00</td>
+                                <td><span class="badge bg-warning text-dark">Pending</span></td>
+                                <td><a href="https://www.google.com/search?q=logic+level+converter+3.3v+5v&tbm=shop" target="_blank" class="btn btn-sm btn-outline-primary">Buy/Search</a></td>
+                            </tr>
+
+                            <!-- 6. Tools -->
+                            <tr>
+                                <td><span class="badge bg-warning text-dark">Tools</span></td>
+                                <td>Soldering Kit (Iron, Flux, Mat)</td>
+                                <td>€30.00</td>
+                                <td><span class="badge bg-warning text-dark">Required</span></td>
+                                <td><a href="https://www.google.com/search?q=soldering+iron+kit+electronics&tbm=shop" target="_blank" class="btn btn-sm btn-outline-primary">Buy/Search</a></td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-warning text-dark">Tools</span></td>
+                                <td>Precision Hand Tools</td>
+                                <td>€25.00</td>
+                                <td><span class="badge bg-warning text-dark">Required</span></td>
+                                <td><a href="https://www.google.com/search?q=precision+electronics+tool+set&tbm=shop" target="_blank" class="btn btn-sm btn-outline-primary">Buy/Search</a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="text-end mt-3">
+                    <h3>Total Est: <span class="text-ocean-orange">€1,740.24</span></h3>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <footer class="text-center py-4 text-muted mt-5">
+        &copy; 2025 OceanPulse.pt
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+    </script>
+    <script src="assets/js/app.js"></script>
+</body>
+</html>25434 bytes transferred in 2 seconds (10.9 KiB/s)

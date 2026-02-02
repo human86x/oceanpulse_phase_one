@@ -1,0 +1,19 @@
+# OceanPulse Port Map
+# Width: 1755px, Height: 940px (Ratio 1.867)
+mtllib port_map.mtl
+
+v -175.5 0.0 94.0
+v 175.5 0.0 94.0
+v 175.5 0.0 -94.0
+v -175.5 0.0 -94.0
+
+vt 0.0 0.0
+vt 1.0 0.0
+vt 1.0 1.0
+vt 0.0 1.0
+
+vn 0.0 1.0 0.0
+
+usemtl map_material
+s off
+f 1/1/1 2/2/1 3/3/1 4/4/1

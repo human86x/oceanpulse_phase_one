@@ -1,0 +1,45 @@
+{
+  "schema_version": "1.0",
+  "last_updated": "2026-01-30T22:45:00Z",
+  "project": {
+    "name": "OceanPulse",
+    "description": "Ocean monitoring buoy system with TDS sensing, relay control, and LoRa communication",
+    "north_star_spec": "SPEC-000",
+    "north_star_status": "PENDING"
+  },
+  "phases": [
+    {
+      "id": "0",
+      "name": "Foundation",
+      "status": "active",
+      "objectives": [
+        "Define Target Architecture (SPEC-000)",
+        "Establish ADT governance framework"
+      ],
+      "specs": ["SPEC-000", "SPEC-003"]
+    },
+    {
+      "id": "1",
+      "name": "Prototype Validation",
+      "status": "active",
+      "objectives": [
+        "Validate TDS Sensor and Relay control via Arduino Mega",
+        "Establish reliable Serial bridge between Mega and Pi",
+        "Connect Pis to Megas and LoRa modules",
+        "Build Web Dashboard to monitor/control the unit"
+      ],
+      "specs": ["SPEC-001", "SPEC-002", "SPEC-003"]
+    },
+    {
+      "id": "2",
+      "name": "Field Deployment",
+      "status": "planned",
+      "objectives": [
+        "Deploy buoy in real marine environment",
+        "Establish LoRa mesh network",
+        "Long-term reliability testing"
+      ],
+      "specs": []
+    }
+  ]
+}

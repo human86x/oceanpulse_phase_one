@@ -1,0 +1,6 @@
+.cortex/active_tasks/
+__pycache__/
+*.pyc
+.env
+.DS_Store
+node_modules/

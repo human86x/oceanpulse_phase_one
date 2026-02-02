@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Porto da Baleeira - Virtual Twin</title>
+    <style>
+        body { margin: 0; overflow: hidden; font-family: 'Segoe UI', monospace; background: #222; color: #eee; }
+        
+        /* Control Panel */
+        #ui { 
+            position: absolute; top: 10px; left: 10px; width: 300px;
+            background: rgba(0, 20, 40, 0.9); border: 1px solid #00aaff;
+            padding: 15px; border-radius: 8px; box-shadow: 0 0 20px rgba(0, 170, 255, 0.2);
+            z-index: 100;
+        }
+        h2 { margin: 0 0 15px 0; color: #00aaff; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #005588; padding-bottom: 5px; }
+        
+        .control-group { margin-bottom: 15px; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 4px; }
+        label { display: block; font-size: 0.75rem; color: #88ccff; margin-bottom: 5px; }
+        input[type=range] { width: 100%; cursor: pointer; }
+        
+        .value-display { float: right; font-weight: bold; color: #fff; }
+
+        /* Report HUD */
+        #hud {
+            position: absolute; bottom: 20px; left: 20px;
+            background: rgba(0, 0, 0, 0.8); border-left: 4px solid #ffaa00;
+            padding: 15px; width: auto; min-width: 250px;
+            font-family: 'Courier New', monospace; font-size: 0.85rem;
+            pointer-events: none;
+        }
+        .hud-row { margin-bottom: 4px; display: flex; justify-content: space-between; }
+        .hud-label { color: #aaa; margin-right: 15px; }
+        .hud-val { color: #ffaa00; font-weight: bold; }
+
+        button {
+            background: #005588; color: white; border: none; padding: 8px; width: 100%;
+            cursor: pointer; font-weight: bold; text-transform: uppercase; margin-top: 5px;
+        }
+        button:hover { background: #0077aa; }
+
+    </style>
+</head>
+<body>
+
+<div id="ui">
+    <h2>Simulation Controls</h2>
+    
+    <div class="control-group">
+        <label>Time Scale: <span id="timeVal" class="value-display">1x</span></label>
+        <input type="range" min="0" max="100" value="1" step="1" oninput="updateTime(this.value)">
+    </div>
+
+    <div class="control-group">
+        <label>Wind Speed (Knots): <span id="windSpeedVal" class="value-display">15</span></label>
+        <input type="range" min="0" max="50" value="15" oninput="updateWindSpeed(this.value)">
+    </div>
+
+    <div class="control-group">
+        <label>Wind Direction: <span id="windDirVal" class="value-display">N (0°)</span></label>
+        <input type="range" min="0" max="359" value="0" oninput="updateWindDir(this.value)">
+    </div>
+
+    <div class="control-group">
+        <label>Map Scale: <span id="mapScaleVal" class="value-display">158</span>m</label>
+        <input type="range" min="100" max="2000" value="158" oninput="updateMapScale(this.value)">
+    </div>
+
+    <div class="control-group" style="background: rgba(255, 200, 0, 0.1); border: 1px solid #ffaa00;">
+        <label style="cursor:pointer; display:flex; align-items:center;">
+            <input type="checkbox" id="dragMode" style="width:auto; margin-right:10px;"> 
+            <span style="color:#ffaa00; font-weight:bold;">Enable Buoy Dragging</span>
+        </label>
+    </div>
+
+    <div class="control-group" style="background: rgba(255, 50, 50, 0.1); border: 1px solid #ff4444;">
+        <label style="cursor:pointer; display:flex; align-items:center;">
+            <input type="checkbox" id="sourceMode" style="width:auto; margin-right:10px;"> 
+            <span style="color:#ff4444; font-weight:bold;">Place Oil Source (Click Map)</span>
+        </label>
+        
+        <div style="margin-top:10px; border-top:1px solid rgba(255,68,68,0.3); padding-top:5px;">
+            <label>Source Intensity: <span id="intensityVal" class="value-display">50%</span></label>
+            <input type="range" min="1" max="100" value="50" oninput="updateIntensity(this.value)">
+        </div>
+
+        <button onclick="clearSources()" style="background: #aa0000; margin-top:10px;">Clear All Sources</button>
+    </div>
+
+    <button onclick="resetSim()">Reset Simulation</button>
+</div>
+
+<div id="hud">
+    <div class="hud-row"><span class="hud-label">Surface Velocity:</span> <span id="driftSpeed" class="hud-val">0.00 m/s</span></div>
+    <div class="hud-row"><span class="hud-label">Drift Azimuth:</span> <span id="driftDir" class="hud-val">180°</span></div>
+    <div class="hud-row"><span class="hud-label">Simulated Time:</span> <span id="simTime" class="hud-val">00:00:00</span></div>
+    <div class="hud-row"><span class="hud-label">Detections:</span> <span id="detectCount" class="hud-val">0</span></div>
+</div>
+
+<!-- Import Map for Modern Three.js -->
+<script type="importmap">
+{
+    "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+}
+</script>
+
+<script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
+
+    // --- CONFIG ---
+    const CONF = {
+        mapScale: 158, // Size of the map plane in meters
+        buoyScale: 1.2, // Buoy diameter
+        windToDriftRatio: 0.03, // 3% rule
+        knotsToMs: 0.514444
+    };
+
+    // --- STATE ---
+    let timeScale = 1.0;
+    let windSpeedKnots = 15;
+    let windDirDeg = 0; // 0 = Blowing FROM North
+    let simSeconds = 0;
+    let detections = 0;
+    let activeSpotDistFromCenter = 1.8; 
+    let sourceIntensity = 0.5; // 0 to 1
+
+    let scene, camera, renderer, controls;
+    let buoyGroup, mapPlane, portMesh;
+    const spills = [];
+    const oilSources = []; // { x, z, nextSpawnTime, mesh }
+    const MAX_SPILLS = 500; // Increased to allow trails
+    
+    // Interaction
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+    const dragPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+    let isDragging = false;
+    let dragOffset = new THREE.Vector3();
+
+    init();
+
+    function init() {
+        // Scene Setup
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x111111); 
+        scene.fog = new THREE.FogExp2(0x111111, 0.002);
+
+        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 2000);
+        camera.position.set(0, 100, 100); 
+
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        document.body.appendChild(renderer.domElement);
+
+        controls = new OrbitControls(camera, renderer.domElement);
+        controls.maxPolarAngle = Math.PI / 2 - 0.1;
+
+        // Lighting
+        const sun = new THREE.DirectionalLight(0xffffff, 1.5);
+        sun.position.set(100, 200, 100);
+        sun.castShadow = true;
+        scene.add(sun);
+        scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+
+        // --- MAP PLANE (Sea Floor / Texture Reference) ---
+        const textureLoader = new THREE.TextureLoader();
+        const mapTexture = textureLoader.load('/bigger_map.png');
+        
+        // Flat plane for the water/sea floor texture
+        const mapGeo = new THREE.PlaneGeometry(CONF.mapScale, CONF.mapScale / 1.864);
+        const mapMat = new THREE.MeshBasicMaterial({ 
+            map: mapTexture,
+            side: THREE.DoubleSide,
+            transparent: true,
+            opacity: 0.8 // Show texture but let water blue shine through
+        }); 
+        mapPlane = new THREE.Mesh(mapGeo, mapMat);
+        mapPlane.rotation.x = -Math.PI / 2;
+        mapPlane.position.y = -0.1; // Just below water surface
+        mapPlane.receiveShadow = true;
+        scene.add(mapPlane);
+
+        // --- 3D PORT GEOMETRY (Generated Mesh) ---
+        const objLoader = new OBJLoader();
+        objLoader.load('/models/port_geo.obj', (root) => {
+            portMesh = root; // Save reference
+            
+            root.traverse(function (child) {
+                if (child.isMesh) {
+                    child.material = new THREE.MeshStandardMaterial({
+                        map: mapTexture, // Apply the satellite image
+                        roughness: 1.0,  // Matte surface (asphalt/concrete)
+                        metalness: 0.0,
+                        flatShading: false
+                    });
+                    child.castShadow = true;
+                    child.receiveShadow = true;
+                }
+            });
+            
+            // Apply Initial Scale
+            // The mesh was generated at width 500. We scale it to match CONF.mapScale
+            const initialScale = CONF.mapScale / 500.0;
+            root.scale.set(initialScale, initialScale, initialScale);
+            
+            scene.add(root);
+        });
+
+        // RE-ENABLE GRID (1m squares)
+        // 500m scale, 500 divisions = 1m squares
+        const grid = new THREE.GridHelper(CONF.mapScale, 500, 0xffffff, 0x444444);
+        grid.position.y = 0.05; // Slightly above map
+        grid.material.opacity = 0.2;
+        grid.material.transparent = true;
+        scene.add(grid);
+
+        // Load Buoy
+        loadBuoy();
+
+        // Init Spills
+        for(let i=0; i<MAX_SPILLS; i++) spawnSpill(true);
+
+        // Resize Listener
+        window.addEventListener('resize', onResize);
+
+        // Mouse Events for Dragging
+        renderer.domElement.addEventListener('mousedown', onMouseDown);
+        renderer.domElement.addEventListener('mousemove', onMouseMove);
+        renderer.domElement.addEventListener('mouseup', onMouseUp);
+
+        // Start Loop
+        animate();
+    }
+
+    function onMouseDown(event) {
+        // 1. Check Drag Mode
+        if(document.getElementById('dragMode').checked && buoyGroup) {
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            raycaster.setFromCamera(mouse, camera);
+
+            const intersects = raycaster.intersectObjects(buoyGroup.children, true);
+            if(intersects.length > 0) {
+                isDragging = true;
+                controls.enabled = false; 
+                document.body.style.cursor = 'grabbing';
+                const target = new THREE.Vector3();
+                raycaster.ray.intersectPlane(dragPlane, target);
+                dragOffset.subVectors(buoyGroup.position, target);
+                return; // Handled drag
+            }
+        }
+        
+        // 2. Check Source Mode
+        if(document.getElementById('sourceMode').checked) {
+             mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+             mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+             raycaster.setFromCamera(mouse, camera);
+             
+             // Raycast to Map Plane
+             const intersects = raycaster.intersectObject(mapPlane);
+             if(intersects.length > 0) {
+                 const pt = intersects[0].point;
+                 addSource(pt.x, pt.z);
+             }
+        }
+    }
+
+    function addSource(x, z) {
+        // Visual Marker
+        const marker = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.5, 0.5, 1, 16),
+            new THREE.MeshBasicMaterial({color: 0xff0000})
+        );
+        marker.position.set(x, 0.5, z);
+        scene.add(marker);
+        
+        oilSources.push({
+            x: x, 
+            z: z, 
+            nextSpawnTime: 0,
+            mesh: marker
+        });
+    }
+
+    window.updateIntensity = (v) => {
+        sourceIntensity = parseInt(v) / 100.0;
+        document.getElementById('intensityVal').innerText = v + "%";
+    };
+    
+    window.clearSources = () => {
+        oilSources.forEach(src => scene.remove(src.mesh));
+        oilSources.length = 0;
+    };
+
+    function onMouseMove(event) {
+        if(!isDragging) return;
+
+        mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+        mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+        raycaster.setFromCamera(mouse, camera);
+        
+        const target = new THREE.Vector3();
+        if(raycaster.ray.intersectPlane(dragPlane, target)) {
+            // Apply offset
+            target.add(dragOffset);
+            
+            // Keep Y floating (don't overwrite with plane Y=0 entirely, preserve bobbing base)
+            // Actually, animate() overrides Y for bobbing. We just update X/Z.
+            buoyGroup.position.x = target.x;
+            buoyGroup.position.z = target.z;
+        }
+    }
+
+    function onMouseUp() {
+        if(isDragging) {
+            isDragging = false;
+            controls.enabled = true;
+            document.body.style.cursor = 'default';
+        }
+    }
+
+    function loadBuoy() {
+        const loader = new GLTFLoader();
+        buoyGroup = new THREE.Group();
+        scene.add(buoyGroup);
+
+        loader.load('/models/buoy.glb', (gltf) => {
+            const model = gltf.scene;
+            const box = new THREE.Box3().setFromObject(model);
+            const size = box.getSize(new THREE.Vector3());
+            
+            // Scale
+            const maxDim = Math.max(size.x, size.z);
+            if(maxDim > 0) {
+                const s = CONF.buoyScale / maxDim;
+                model.scale.set(s,s,s);
+            }
+            // Lowered the buoy (negative offset to sit deeper)
+            model.position.y = -box.min.y * model.scale.y - 0.1; 
+            
+            buoyGroup.add(model);
+            addUVBeam();
+        });
+    }
+
+    function addUVBeam() {
+        // Standardized Beam (North, 35deg, 6.5m2)
+        const pivotHeight = 2.0; 
+        const offsetZ = -0.4;
+        const angleRad = 35 * Math.PI / 180;
+        
+        const pivot = new THREE.Group();
+        pivot.position.set(0, pivotHeight, offsetZ); 
+        pivot.rotation.x = angleRad;
+        pivot.rotation.y = Math.PI;
+
+        // Visuals
+        pivot.add(new THREE.Mesh(new THREE.BoxGeometry(0.3,0.15,0.4), new THREE.MeshStandardMaterial({color:0x111111})));
+        
+        const targetRadius = 1.44; 
+        const len = pivotHeight / Math.cos(angleRad);
+        const beam = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.05, targetRadius, len, 32, 1, true),
+            new THREE.MeshBasicMaterial({color:0x6200ea, transparent:true, opacity:0.2, side:THREE.DoubleSide})
+        );
+        beam.position.y = -len/2;
+        pivot.add(beam);
+        
+        buoyGroup.add(pivot);
+
+        // Math
+        const throwDist = pivotHeight * Math.tan(angleRad);
+        activeSpotDistFromCenter = Math.abs(offsetZ) + throwDist;
+
+        // Visual Zone
+        const zone = new THREE.Mesh(new THREE.CircleGeometry(targetRadius, 32), new THREE.MeshBasicMaterial({color:0x6200ea, transparent:true, opacity:0.3}));
+        zone.position.set(0, 0.05, -activeSpotDistFromCenter); 
+        zone.rotation.x = -Math.PI/2;
+        buoyGroup.add(zone);
+    }
+
+    function spawnSpill(x, z) {
+        // If x,z provided, use them. Else random.
+        const isRandom = (x === undefined || z === undefined);
+
+        const g = new THREE.Group();
+        const blobs = Math.floor(Math.random() * 3) + 1;
+        for(let i=0; i<blobs; i++) {
+            const m = new THREE.Mesh(
+                new THREE.CircleGeometry(0.2 + Math.random()*0.3, 12),
+                new THREE.MeshBasicMaterial({color:0x050505})
+            );
+            m.position.set((Math.random()-0.5)*0.5, 0, (Math.random()-0.5)*0.8);
+            m.rotation.x = -Math.PI/2;
+            g.add(m);
+        }
+        
+        if(isRandom) {
+            const range = 50;
+            g.position.set((Math.random()-0.5)*range, 0.05, (Math.random()-0.5)*range);
+        } else {
+            g.position.set(x + (Math.random()-0.5)*0.5, 0.05, z + (Math.random()-0.5)*0.5);
+        }
+
+        // Initialize growth
+        g.userData = { 
+            age: 0, 
+            growthRate: 0.05 + Math.random() * 0.05 
+        };
+
+        scene.add(g);
+        spills.push(g);
+        
+        // Remove old if too many
+        if(spills.length > MAX_SPILLS) {
+            const old = spills.shift();
+            scene.remove(old);
+        }
+    }
+
+    // ... (rest of code) ...
+
+    function animate() {
+        requestAnimationFrame(animate);
+        
+        const dt = 0.016 * timeScale;
+        simSeconds += dt;
+
+        const windRad = windDirDeg * Math.PI / 180;
+        const driftRad = windRad + Math.PI; 
+        
+        const windMs = windSpeedKnots * CONF.knotsToMs;
+        const driftMs = windMs * CONF.windToDriftRatio;
+        
+        const dx = Math.sin(driftRad) * driftMs * dt;
+        const dz = -Math.cos(driftRad) * driftMs * dt;
+        
+        // Spawn from sources
+        oilSources.forEach(src => {
+            if(simSeconds > src.nextSpawnTime) {
+                spawnSpill(src.x, src.z);
+                // Intensity controls rate. High intensity = Low Interval.
+                // Min interval 0.1s (intense), Max 2.0s (weak)
+                const interval = 2.0 - (sourceIntensity * 1.9); 
+                src.nextSpawnTime = simSeconds + interval * (0.8 + Math.random()*0.4); 
+            }
+        });
+
+        let currentDetections = 0;
+        const mapBound = CONF.mapScale / 2 + 50; // Margin to remove
+        
+        for(let i=spills.length-1; i>=0; i--) {
+            const s = spills[i];
+            
+            // Move
+            s.position.x += dx;
+            s.position.z += dz;
+            
+            // Grow
+            s.userData.age += dt;
+            // Linear growth: Scale increases by growthRate per second
+            const scale = 1.0 + (s.userData.age * s.userData.growthRate);
+            s.scale.set(scale, scale, scale);
+
+            // Remove if off map (Drifting away)
+            if(Math.abs(s.position.x) > mapBound || Math.abs(s.position.z) > mapBound) {
+                 scene.remove(s);
+                 spills.splice(i, 1);
+                 continue;
+            }
+
+            // Detection Logic
+            const spotWX = Math.sin(windRad) * (-activeSpotDistFromCenter); 
+            const spotWZ = -Math.cos(windRad) * (-activeSpotDistFromCenter);
+            
+            // Adjust detection radius for scale? Not strictly necessary for "flash" logic, 
+            // but physically the spot hits the oil. We check distance to center.
+            const dist = Math.sqrt(Math.pow(s.position.x - spotWX, 2) + Math.pow(s.position.z - spotWZ, 2));
+            
+            if(dist < 1.6 + (scale * 0.2)) { // Larger oil is easier to hit?
+                s.children.forEach(c => c.material.color.setHex(0x00ffff));
+                currentDetections++;
+            } else {
+                s.children.forEach(c => c.material.color.setHex(0x050505));
+            }
+        }
+
+        if(buoyGroup) {
+            buoyGroup.rotation.y = -windRad; 
+            // RESTORE BOBBING / BOUNCING (Reduced amplitude)
+            // We use current X/Z but animate Y
+            buoyGroup.position.y = Math.sin(Date.now() * 0.0015) * 0.05;
+            buoyGroup.rotation.z = Math.sin(Date.now() * 0.001) * 0.05;
+        }
+
+        detections = currentDetections;
+        updateHUD(driftMs, driftRad);
+        renderer.render(scene, camera);
+    }
+
+    function updateHUD(speed, dirRad) {
+        document.getElementById('driftSpeed').innerText = speed.toFixed(3) + " m/s";
+        let deg = (dirRad * 180 / Math.PI) % 360;
+        if(deg < 0) deg += 360;
+        document.getElementById('driftDir').innerText = deg.toFixed(0) + "°";
+        const hrs = Math.floor(simSeconds / 3600).toString().padStart(2,'0');
+        const mins = Math.floor((simSeconds % 3600) / 60).toString().padStart(2,'0');
+        const secs = Math.floor(simSeconds % 60).toString().padStart(2,'0');
+        document.getElementById('simTime').innerText = `${hrs}:${mins}:${secs}`;
+        document.getElementById('detectCount').innerText = detections;
+    }
+
+    function onResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    window.updateTime = (v) => { timeScale = parseInt(v); document.getElementById('timeVal').innerText = v + "x"; };
+    window.updateWindSpeed = (v) => { windSpeedKnots = parseInt(v); document.getElementById('windSpeedVal').innerText = v; };
+    window.updateWindDir = (v) => { 
+        windDirDeg = parseInt(v); 
+        const dirs = ["N","NE","E","SE","S","SW","W","NW"];
+        const idx = Math.round(v/45) % 8;
+        document.getElementById('windDirVal').innerText = `${dirs[idx]} (${v}°)`; 
+    };
+    window.updateMapScale = (v) => {
+        const width = parseFloat(v);
+        
+        // 1. Scale Map Plane
+        if(mapPlane) {
+            const height = width / 1.864; // Keep aspect ratio
+            mapPlane.geometry.dispose();
+            mapPlane.geometry = new THREE.PlaneGeometry(width, height);
+        }
+        
+        // 2. Scale Port Geometry
+        // Original generation width was 500.0
+        if(portMesh) {
+            const s = width / 500.0;
+            portMesh.scale.set(s, s, s);
+        }
+
+        document.getElementById('mapScaleVal').innerText = v;
+    };
+    window.resetSim = () => { 
+        simSeconds = 0; 
+        spills.forEach(s => scene.remove(s));
+        spills.length = 0;
+        
+        // Note: We are NOT clearing sources on reset, so user doesn't lose setup.
+        // But we re-seed randoms.
+        for(let i=0; i<20; i++) spawnSpill();
+    };
+
+</script>
+</body>
+</html>

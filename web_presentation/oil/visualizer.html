@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>OceanPulse - Baleeira Twin</title>
+    <style>
+        body { margin: 0; overflow: hidden; font-family: monospace; background: #333; }
+        #ui { position: absolute; top: 10px; left: 10px; background: rgba(255,255,255,0.9); padding: 15px; border-radius: 8px; width: 260px; z-index: 100; }
+        #debugLog { position: absolute; bottom: 0; left: 0; width: 100%; height: 120px; background: rgba(0,0,0,0.8); color: #0f0; padding: 10px; overflow-y: scroll; pointer-events: none; }
+        .err { color: #f00; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div id="ui">
+    <h3>Baleeira Twin</h3>
+    <div id="status" style="font-weight:bold; margin-top:10px;">System Active</div>
+    <button style="margin-top:10px; padding:5px; width:100%;" onclick="resetAll()">Reset Simulation</button>
+</div>
+
+<div id="debugLog">System Init...<br></div>
+
+<!-- ROBUST LEGACY LOADING (Works in all browsers) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+
+<script>
+    function log(msg, type='') {
+        const el = document.getElementById('debugLog');
+        if(el) { el.innerHTML += `<div class="${type}">> ${msg}</div>`; el.scrollTop = el.scrollHeight; }
+    }
+
+    window.onerror = function(msg, url, line) {
+        log(`CRITICAL ERROR: ${msg} (Line ${line})`, 'err');
+    };
+
+    let scene, camera, renderer, buoyGroup;
+    let windDirection = 0;
+    const spills = [];
+    let activeSpotZ = -2.0;
+
+    // Start
+    try {
+        initScene();
+        animate();
+        loadModel();
+    } catch(e) {
+        log("CRASH: " + e.message, 'err');
+    }
+
+    function initScene() {
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x87CEEB); 
+        scene.fog = new THREE.FogExp2(0x87CEEB, 0.015);
+
+        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(12, 8, 12);
+
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        new THREE.OrbitControls(camera, renderer.domElement);
+
+        // Env
+        const water = new THREE.Mesh(new THREE.PlaneGeometry(500,500), new THREE.MeshPhongMaterial({color:0x005a9c, transparent:true, opacity:0.9}));
+        water.rotation.x = -Math.PI/2;
+        scene.add(water);
+
+        // Cliffs
+        const cliff = new THREE.Mesh(new THREE.CylinderGeometry(15,20,40,8), new THREE.MeshStandardMaterial({color:0xdddddd}));
+        cliff.position.set(-70,10,-50);
+        scene.add(cliff);
+
+        // Lights
+        scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+        const sun = new THREE.DirectionalLight(0xfffaed, 1.2);
+        sun.position.set(50,50,50);
+        scene.add(sun);
+
+        // Resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+        
+        // Spawn Spills
+        for(let i=0; i<20; i++) spawnSpill(true);
+    }
+
+    function loadModel() {
+        const loader = new THREE.GLTFLoader();
+        buoyGroup = new THREE.Group();
+        scene.add(buoyGroup);
+
+        loader.load('/models/buoy.glb', (gltf) => {
+            log("Model Loaded.");
+            const model = gltf.scene;
+            const box = new THREE.Box3().setFromObject(model);
+            const size = box.getSize(new THREE.Vector3());
+            const center = box.getCenter(new THREE.Vector3());
+
+            model.position.set(-center.x, -box.min.y, -center.z);
+            
+            const currentDia = Math.max(size.x, size.z);
+            if(currentDia > 0) {
+                const s = 1.2 / currentDia;
+                model.scale.set(s,s,s);
+            }
+            model.position.y += 0.5;
+            buoyGroup.add(model);
+            
+            addHardware();
+        }, undefined, (e) => log("Model Error: " + e, 'err'));
+    }
+
+    function addHardware() {
+        // GRID
+        const grid = new THREE.GridHelper(10, 10, 0xffffff, 0x444444);
+        grid.position.y = 0.02;
+        buoyGroup.add(grid);
+
+        // NORTH PROJECTOR
+        const pivotHeight = 1.8; 
+        const offsetZ = -0.4; // North
+        const pivot = new THREE.Group();
+        pivot.position.set(0, pivotHeight, offsetZ);
+
+        // Face North (-Z), Tilt Down (35deg)
+        pivot.rotation.y = Math.PI; 
+        pivot.rotation.x = 35 * Math.PI / 180; 
+
+        pivot.add(new THREE.Mesh(new THREE.BoxGeometry(0.3,0.15,0.4), new THREE.MeshStandardMaterial({color:0x222222})));
+        
+        const len = pivotHeight / Math.cos(35 * Math.PI/180);
+        const beam = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.05, 1.38, len, 32, 1, true),
+            new THREE.MeshBasicMaterial({color:0x6200ea, transparent:true, opacity:0.3, side:THREE.DoubleSide})
+        );
+        beam.position.y = -len/2;
+        pivot.add(beam);
+        buoyGroup.add(beam); // Fix: this was pivot.add(beam) which is correct, but buoyGroup.add(pivot) was missing in some versions? No, the code above has buoyGroup.add(pivot).
+
+        // Wait, looking at my history, the code I pasted has:
+        // pivot.add(beam);
+        // buoyGroup.add(pivot);
+        // Correct.
+        
+        buoyGroup.add(pivot); // Ensuring this is there.
+
+        // Spot on water
+        const throwDist = pivotHeight * Math.tan(35 * Math.PI/180);
+        activeSpotZ = offsetZ - throwDist; // North (-Z)
+        
+        const spot = new THREE.Mesh(new THREE.CircleGeometry(1.38, 32), new THREE.MeshBasicMaterial({color:0x6200ea, opacity:0.4, transparent:true}));
+        spot.rotation.x = -Math.PI/2;
+        spot.position.set(0, 0.05, activeSpotZ);
+        buoyGroup.add(spot);
+    }
+
+    function spawnSpill(randomZ = false) {
+        const group = new THREE.Group();
+        
+        // Main Blob
+        const geo = new THREE.CircleGeometry(0.3 + Math.random()*0.2, 16);
+        const mat = new THREE.MeshBasicMaterial({ color: 0x111111, transparent:true, opacity: 0.8 });
+        const main = new THREE.Mesh(geo, mat);
+        main.scale.set(0.6 + Math.random()*0.4, 1.0 + Math.random()*1.5, 1);
+        group.add(main);
+
+        // Random offset blob
+        if(Math.random()>0.5) {
+            const sub = new THREE.Mesh(new THREE.CircleGeometry(0.2,16), mat);
+            sub.position.set((Math.random()-0.5)*0.3, (Math.random()-0.5)*0.5, 0);
+            group.add(sub);
+        }
+
+        group.rotation.x = -Math.PI/2;
+        
+        const startZ = randomZ ? (Math.random()*30 - 15) : 15;
+        const startX = (Math.random()-0.5)*4.0;
+        
+        group.position.set(startX, 0.05, startZ);
+        group.userData = { speed: 0.05 + Math.random()*0.04 };
+        
+        scene.add(group);
+        spills.push(group);
+    }
+
+    function animate() {
+        requestAnimationFrame(animate);
+        if(buoyGroup) {
+            buoyGroup.position.y = Math.sin(Date.now()*0.001)*0.15;
+            let diff = windDirection - buoyGroup.rotation.y;
+            buoyGroup.rotation.y += diff * 0.05;
+        }
+        
+        let detections = 0;
+        
+        for(let i=spills.length-1; i>=0; i--) {
+            const s = spills[i];
+            s.position.z -= s.userData.speed;
+            
+            // Check
+            const dist = Math.sqrt(Math.pow(s.position.x,2) + Math.pow(s.position.z - activeSpotZ, 2));
+            if(dist < 1.8) {
+                // Flash
+                s.children.forEach(m => { m.material.color.setHex(0x00ffff); m.material.opacity = 1.0; });
+                detections++;
+            } else {
+                s.children.forEach(m => { m.material.color.setHex(0x111111); m.material.opacity = 0.8; });
+            }
+            
+            // Reset
+            if(s.position.z < -15) {
+                scene.remove(s);
+                spills.splice(i,1);
+                spawnSpill(false);
+            }
+        }
+        
+        if(detections > 0) {
+            document.getElementById('status').innerText = `!!! ${detections} DETECTED !!!`;
+            document.getElementById('status').style.color = "red";
+        } else {
+            document.getElementById('status').innerText = "Scanning...";
+            document.getElementById('status').style.color = "black";
+        }
+        
+        renderer.render(scene, camera);
+    }
+
+    window.resetAll = function() {
+        spills.forEach(s => scene.remove(s));
+        spills.length = 0;
+        for(let i=0; i<20; i++) spawnSpill(true);
+    }
+</script>
+</body>
+</html>
