@@ -20,12 +20,34 @@ You are bound by the ADT Constitution (`_cortex/ADT_CONSTITUTION.md`). Read it b
 ### 1.1 Mandatory Logging
 **EVERY action you take MUST be logged to the ADS.** This is non-negotiable.
 
-Before ANY file edit, you MUST append an event:
-```jsonl
-{"id":"evt_YYYYMMDD_HHMMSS_XXX","ts":"<ISO8601>","session_id":"<session>","agent":"CLAUDE|GEMINI","role":"<your_role>","action_type":"<type>","spec_ref":"<SPEC-XXX>","authority":"<what authorizes this>","authorized":true|false,"rationale":"<why>","action_data":{...},"outcome":"pending","escalation":false}
+**Do NOT use `echo` to append to the file.** Use the Safe Logger:
+
+```bash
+./_cortex/ops/log.py \
+  --session_id "session_123" \
+  --agent "GEMINI" \
+  --role "Overseer" \
+  --action_type "file_edit" \
+  --spec_ref "SPEC-003" \
+  --authority "Self-Correction" \
+  --authorized true \
+  --rationale "Fixing bug" \
+  --action_data '{"file":"test.txt"}'
 ```
 
-### 1.1.1 TIMESTAMP REQUIREMENT (CRITICAL)
+The Safe Logger handles:
+1. JSON Validation
+2. File Locking
+3. Timestamping
+4. **Automatic Git Backup (Ledger Protocol)**
+
+### 1.1.1 SESSION ID STABILITY (CRITICAL)
+**The `session_id` MUST remain identical for all events within a single agent activation.**
+- Generate the ID once at `session_start`.
+- Use the **exact same string** for every `file_edit`, `task_lock`, etc., until `session_end`.
+- Fragmented session IDs (e.g. appending timestamps per event) break the Workflow Visualization and violate ADT narrative integrity.
+
+### 1.1.2 TIMESTAMP REQUIREMENT (CRITICAL)
 **NEVER hardcode timestamps.** Always use system time:
 ```bash
 # Correct - use system time
@@ -48,6 +70,13 @@ Fabricated timestamps compromise the audit trail and violate Article I Section 1
 
 ### 1.3 No Record = Didn't Happen
 An action not in the ADS is structurally invalid and does not produce legitimate outcomes.
+
+### 1.4 Non-Negotiable Procedure Enforcement (Grave Violation)
+To prevent bypass of the logging system:
+1. **Audit Matching:** Any file modification found in the work tree that does not have a corresponding, cryptographically-linked event in `events.jsonl` is a **Grave Violation**.
+2. **Consequence:** Grave Violations result in immediate session termination, roll-back of all unverified changes, and mandatory Human Physical Audit.
+3. **Hook Enforcement:** The `.claude/hooks/` and `.gemini/hooks/` scripts are part of the system's "Self-Preservation" mechanism. Agents are PROHIBITED from modifying or disabling these hooks.
+4. **Tool Coupling:** Whenever possible, use tools that combine action + logging (e.g. the ADT Panel deployment script).
 
 ---
 
@@ -101,6 +130,7 @@ Before editing, check `_cortex/active_tasks/`:
 | Backend_Engineer | `obs_center/app.py`, `obs_center/backend/`, `api/` |
 | Frontend_Engineer | `obs_center/templates/`, `obs_center/static/`, `adt_panel/` (including deployment) |
 | DevOps_Engineer | `ops/`, `.github/`, `deploy/`, `scripts/` |
+| Integration_Engineer | `_cortex/roles/Integration_Engineer/`, `docs/procurement/` |
 | Overseer | `_cortex/ads/`, `adt_panel/` |
 
 > **Note:** Embedded_Engineer owns the full firmware development lifecycle including remote deployment to Pis via SSH, arduino-cli flashing, and serial testing. This enables self-contained write→deploy→test workflow.
@@ -224,6 +254,35 @@ The **Overseer** and **Frontend_Engineer** may:
 Only the **Overseer** may:
 - Read full ADS for auditing
 - Generate compliance reports
+
+---
+
+## 11. Resolution and Referencing (CRITICAL)
+
+### 11.1 The "Closing" Protocol
+In an append-only ledger, status is never "updated," it is **superseded**. 
+
+When an agent resolves an issue, performs a requested task, or fixes a bug reported in a previous event (especially an `escalation: true` event):
+1. The resolution event MUST include a `ref_id` field.
+2. The `ref_id` MUST be the exact event ID (e.g., `evt_20260130_123456_789`) of the problem, request, or escalation being addressed.
+3. Multiple references may be included in `action_data` if needed, but the primary link goes in `ref_id`.
+
+### 11.2 Automated Clearance
+The ADT Panel and automated auditors use the `ref_id` to correlate solutions with problems. An escalation is only considered "Cleared" by the system when a subsequent valid event references its ID.
+
+---
+
+## 12. Human Physical Interventions (The Scribe Role)
+
+### 12.1 Ground Truth
+In cyber-physical systems, hardware state changes (wiring, soldering, mounting) are "Ground Truth." These MUST be recorded for a complete audit trail.
+
+### 12.2 Scribe Responsibility
+When a Human performs a physical action, the active agent (usually as **Overseer**) must act as a **Scribe**:
+1. Elicit the details of the physical action from the Human.
+2. Log a `physical_action` event to the ADS.
+3. The event `agent` is the AI (Scribe), but the `action_data` must explicitly state `actor: "HUMAN"`.
+4. Include specific details: hardware used, voltages applied, pin connections, physical placement.
 
 ---
 

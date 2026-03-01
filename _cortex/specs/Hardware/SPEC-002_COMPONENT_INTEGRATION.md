@@ -93,6 +93,7 @@ Define the hardware connections, serial protocol, and test firmware for OceanPul
 Examples:
   RELAY:ON\n      → Turn relay ON
   RELAY:OFF\n     → Turn relay OFF
+  REBOOT:SYS\n    → Trigger hardware reset of the OTHER circuit (pulse relay)
   TDS:READ\n      → Request TDS reading
   PING\n          → Heartbeat check
 ```
@@ -112,7 +113,25 @@ Examples:
 
 ---
 
-## 4. Test Firmware Requirements
+## 4. Cross-Circuit Hardware Reset Logic
+
+To enable remote self-healing, each circuit manages the power of its counterpart:
+
+| Managing Circuit | Controlled Circuit | Arduino Pin | Action |
+|------------------|--------------------|-------------|--------|
+| **Main (System A)** | **Health (System B)** | Pin 3 | Toggle relay to cycle Health power |
+| **Health (System B)** | **Main (System A)** | Pin 3 | Toggle relay to cycle Main power |
+
+**Sequence for `REBOOT:SYS` command:**
+1. Arduino receives `REBOOT:SYS` via Serial.
+2. Arduino sets Pin 3 HIGH.
+3. Arduino waits 2 seconds (enforces power-down).
+4. Arduino sets Pin 3 LOW.
+5. Arduino returns `REBOOT:OK`.
+
+---
+
+## 5. Test Firmware Requirements
 
 ### 4.1 Arduino Mega (Main Circuit)
 

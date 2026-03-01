@@ -1,0 +1,14 @@
+### Network Troubleshooting (Session 3)
+- **Problem:** Health Pi not connecting to WiFi automatically (user plugged it into "LAN" to fix).
+- **Discovery:** 
+    - "LAN" meant the user plugged Health Pi into *my* machine (`human-ProBook`).
+    - Found Health Pi at **10.42.0.1** (Ethernet share from my machine).
+    - Health Pi was stuck on `lab-wifi` (Hotspot profile) instead of client.
+- **Actions:**
+    - Accessed Health Pi via `10.42.0.1` (SSH).
+    - Forced connection to `WP6` via `nmcli con up WP6`.
+    - Set autoconnect priority to 100.
+    - Verified new WiFi IP: **192.168.43.49**.
+    - Reverted `firmware/deploy.sh` to standard WiFi topology.
+    - Updated `_cortex/MEMORY_BANK.md`.
+- **Status:** All Pis on WiFi and reachable.

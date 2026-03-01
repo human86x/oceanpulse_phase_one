@@ -32,14 +32,24 @@ allow() {
     exit 0
 }
 
-# Helper: Log violation to ADS
+# Helper: Log violation to ADS using Safe Logger
 log_violation() {
     local type="$1"
     local reason="$2"
-    local ts=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-    local id="evt_$(date +%Y%m%d_%H%M%S)_$(printf '%03d' $RANDOM)"
+    local session_id="${GEMINI_SESSION_ID:-hook_emergency_$(date +%Y%m%d)}"
 
-    echo "{\"id\":\"$id\",\"ts\":\"$ts\",\"agent\":\"GEMINI\",\"role\":\"$CURRENT_ROLE\",\"action_type\":\"$type\",\"spec_ref\":null,\"authority\":\"NONE\",\"authorized\":false,\"rationale\":\"$reason\",\"action_data\":{\"file\":\"$FILE_PATH\"},\"outcome\":\"blocked\",\"escalation\":true}" >> "$ADS_FILE"
+    python3 "$CORTEX_DIR/ops/log.py" \
+        --session_id "$session_id" \
+        --agent "GEMINI" \
+        --role "$CURRENT_ROLE" \
+        --action_type "$type" \
+        --spec_ref "null" \
+        --authority "ADT Enforcement Hook" \
+        --authorized false \
+        --rationale "$reason" \
+        --action_data "{\"file\": \"$FILE_PATH\", \"outcome\": \"blocked\"}" \
+        --outcome "failure" \
+        --escalation true
 }
 
 # Helper: Check if file is in role jurisdiction

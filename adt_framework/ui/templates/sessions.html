@@ -1,0 +1,86 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Agent Sessions</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <span class="badge bg-light text-dark border p-2">
+            <i class="bi bi-broadcast text-success me-2"></i>Live Monitoring
+        </span>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Active Sessions List -->
+    <div class="col-lg-4">
+        <h6 class="text-uppercase fw-bold text-muted small mb-3">Active Sessions</h6>
+        <div id="session-list" class="d-grid gap-3">
+            <div class="card border-0 shadow-sm border-start border-success border-4 active-session">
+                <div class="card-body p-3">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            <h6 class="fw-bold mb-0">GEMINI:Frontend_Engineer</h6>
+                            <span class="text-muted tiny">Started: 12:23:52</span>
+                        </div>
+                        <span class="badge bg-success">ACTIVE</span>
+                    </div>
+                    <div class="row text-center g-0 mt-3 border-top pt-2">
+                        <div class="col-6 border-end">
+                            <div class="small text-muted">Events</div>
+                            <div class="fw-bold">4</div>
+                        </div>
+                        <div class="col-6">
+                            <div class="small text-muted">Locks</div>
+                            <div class="fw-bold text-info">0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Session Detail / Timeline -->
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Session Timeline</h5>
+                <button class="btn btn-sm btn-outline-danger" onclick="forceReleaseLocks()">
+                    <i class="bi bi-unlock"></i> Force Release Locks
+                </button>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush" id="session-timeline">
+                    <div class="list-group-item py-3">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1 fw-bold text-primary">session_start</h6>
+                            <small class="text-muted">12:23:52</small>
+                        </div>
+                        <p class="mb-1 small">Initialized Frontend_Engineer session.</p>
+                        <small class="text-muted font-monospace tiny">evt_20260224_122352_771</small>
+                    </div>
+                    <div class="list-group-item py-3">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1 fw-bold text-primary">file_edit</h6>
+                            <small class="text-muted">12:26:39</small>
+                        </div>
+                        <p class="mb-1 small">Enhanced LoRa Diagnostics UI components.</p>
+                        <div class="bg-light p-2 rounded tiny font-monospace">
+                            data: { "files": ["index.html", "dashboard.js"] }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function forceReleaseLocks() {
+        if (confirm("WARNING: Emergency lock release bypasses concurrency protection and may cause data corruption. Proceed?")) {
+            alert("ADT Escalation: force_lock_release requested. Logging to ADS...");
+        }
+    }
+</script>
+{% endblock %}

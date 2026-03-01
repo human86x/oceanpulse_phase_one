@@ -32,6 +32,21 @@ body.dark-theme {
     text-shadow: 0 0 10px rgba(0, 255, 65, 0.3);
 }
 
+.font-monospace {
+    font-family: 'Courier New', Courier, monospace !important;
+    text-shadow: 0 0 5px rgba(0, 255, 65, 0.4);
+}
+
+.glow-green {
+    box-shadow: 0 0 8px rgba(0, 255, 65, 0.6);
+    text-shadow: 0 0 5px rgba(0, 255, 65, 0.8);
+}
+
+.glow-blue {
+    box-shadow: 0 0 8px rgba(13, 202, 240, 0.6);
+    text-shadow: 0 0 5px rgba(13, 202, 240, 0.8);
+}
+
 #console-log {
     border-left: 2px solid var(--op-accent);
     padding-left: 10px;

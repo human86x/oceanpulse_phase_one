@@ -10,6 +10,11 @@
       "description": "Unique event identifier (format: evt_YYYYMMDD_HHMMSS_XXX)",
       "pattern": "^evt_[0-9]{8}_[0-9]{6}_[0-9]{3}$"
     },
+    "ref_id": {
+      "type": ["string", "null"],
+      "description": "Optional reference to a previous event ID being addressed or resolved",
+      "pattern": "^evt_[0-9]{8}_[0-9]{6}_[0-9]{3}$"
+    },
     "ts": {
       "type": "string",
       "format": "date-time",
@@ -28,11 +33,16 @@
       "type": "string",
       "enum": [
         "Systems_Architect",
+        "Product_Manager",
+        "Mechanical_Engineer",
+        "Electrical_Engineer",
         "Embedded_Engineer",
         "Network_Engineer",
         "Backend_Engineer",
         "Frontend_Engineer",
         "DevOps_Engineer",
+        "QA_Engineer",
+        "Integration_Engineer",
         "Overseer"
       ],
       "description": "Role the agent was operating as"
@@ -53,6 +63,8 @@
         "spec_created",
         "spec_approved",
         "escalation",
+        "escalation_resolution",
+        "physical_action",
         "unauthorized_attempt",
         "jurisdiction_violation",
         "lock_conflict",

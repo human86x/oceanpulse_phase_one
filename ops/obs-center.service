@@ -1,0 +1,14 @@
+[Unit]
+Description=OceanPulse Observational Center Backend
+After=network.target
+
+[Service]
+User=lab
+WorkingDirectory=/home/lab/oceanpulse/obs_center
+Environment=PYTHONPATH=/home/lab/oceanpulse
+ExecStart=/home/lab/oceanpulse/obs_center/venv/bin/python3 app.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

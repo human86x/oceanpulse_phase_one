@@ -1,0 +1,42 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Authoritative Data Source (ADS)</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <form class="d-flex me-2">
+            <input class="form-control form-control-sm me-2" type="search" placeholder="Filter by event ID, role, or spec..." aria-label="Search">
+            <button class="btn btn-sm btn-outline-secondary" type="submit">Filter</button>
+        </form>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover table-striped align-middle mb-0">
+                <thead class="bg-light text-muted small">
+                    <tr>
+                        <th class="px-4">Event ID</th>
+                        <th>Timestamp</th>
+                        <th>Agent:Role</th>
+                        <th>Type</th>
+                        <th>Spec Ref</th>
+                        <th>Authorized</th>
+                        <th class="text-end px-4">Details</th>
+                    </tr>
+                </thead>
+                <tbody id="ads-full-tbody" class="font-monospace small">
+                    <!-- Populated by JS -->
+                    <tr>
+                        <td colspan="7" class="text-center py-5">
+                            <div class="spinner-grow text-primary" role="status"></div>
+                            <div class="mt-2 text-muted">Synchronizing with Authoritative Ledger...</div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

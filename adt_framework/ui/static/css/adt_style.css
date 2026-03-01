@@ -1,0 +1,96 @@
+/* ADT Operational Center - Custom Styles */
+
+:root {
+    --adt-primary: #0d6efd;
+    --adt-secondary: #6c757d;
+    --adt-success: #198754;
+    --adt-info: #0dcaf0;
+    --adt-warning: #ffc107;
+    --adt-danger: #dc3545;
+    --adt-dark: #212529;
+    --adt-light: #f8f9fa;
+}
+
+body {
+    font-size: .875rem;
+    background-color: #f4f7f6;
+}
+
+/* Sidebar */
+.sidebar {
+    min-height: calc(100vh - 48px);
+    z-index: 100;
+}
+
+.sidebar .nav-link {
+    font-weight: 500;
+    color: #333;
+    padding: .5rem 1rem;
+    transition: all 0.2s;
+}
+
+.sidebar .nav-link:hover {
+    background-color: #e9ecef;
+    color: var(--adt-primary);
+}
+
+.sidebar .nav-link.active {
+    color: var(--adt-primary);
+    background-color: rgba(13, 110, 253, 0.05);
+    border-right: 3px solid var(--adt-primary);
+}
+
+.sidebar-heading {
+    font-size: .75rem;
+    text-transform: uppercase;
+}
+
+/* Navbar */
+.navbar-brand {
+    padding-top: .75rem;
+    padding-bottom: .75rem;
+    font-size: 1rem;
+    background-color: rgba(0, 0, 0, .25);
+    box-shadow: inset -1px 0 0 rgba(0, 0, 0, .25);
+}
+
+/* Cards */
+.card {
+    border-radius: 8px;
+    transition: transform 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+
+.card-header {
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+/* Badges */
+.badge {
+    font-weight: 500;
+    letter-spacing: 0.5px;
+}
+
+/* Fonts */
+.font-monospace {
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace !important;
+}
+
+/* Animations */
+@keyframes glow-green {
+    from { box-shadow: 0 0 5px rgba(25, 135, 84, 0.2); }
+    to { box-shadow: 0 0 15px rgba(25, 135, 84, 0.6); }
+}
+
+.glow-green {
+    animation: glow-green 1.5s infinite alternate;
+}
+
+/* Utility */
+.uppercase {
+    text-transform: uppercase;
+}

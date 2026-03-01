@@ -1,0 +1,230 @@
+{% extends "layout.html" %}
+
+{% block head %}
+<style>
+    .kanban-col {
+        min-height: 70vh;
+        background-color: #f8f9fa;
+        border-radius: 0.5rem;
+        padding: 1rem;
+    }
+    .task-card {
+        cursor: pointer;
+        transition: transform 0.1s;
+    }
+    .task-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1) !important;
+    }
+    .priority-critical { border-left: 4px solid #dc3545 !important; }
+    .priority-high { border-left: 4px solid #fd7e14 !important; }
+    .priority-medium { border-left: 4px solid #ffc107 !important; }
+    .priority-low { border-left: 4px solid #0dcaf0 !important; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Task Board</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <select class="form-select form-select-sm border-secondary me-2" style="width: auto;">
+                <option selected>Filter by Spec</option>
+                <option>SPEC-000</option>
+                <option>SPEC-001</option>
+            </select>
+            <button type="button" class="btn btn-sm btn-outline-primary">
+                <i class="bi bi-plus-lg"></i> New Task
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- PENDING -->
+    <div class="col-md-4">
+        <div class="kanban-col border">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="text-uppercase fw-bold text-muted mb-0">Pending</h6>
+                <span class="badge bg-secondary rounded-pill" id="count-pending">0</span>
+            </div>
+            <div id="col-pending" class="d-grid gap-3">
+                <!-- Tasks will be injected here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- IN PROGRESS -->
+    <div class="col-md-4">
+        <div class="kanban-col border border-primary-subtle">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="text-uppercase fw-bold text-primary mb-0">In Progress</h6>
+                <span class="badge bg-primary rounded-pill" id="count-progress">0</span>
+            </div>
+            <div id="col-progress" class="d-grid gap-3">
+                <!-- Tasks will be injected here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- COMPLETED -->
+    <div class="col-md-4">
+        <div class="kanban-col border border-success-subtle">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="text-uppercase fw-bold text-success mb-0">Completed</h6>
+                <span class="badge bg-success rounded-pill" id="count-completed">0</span>
+            </div>
+            <div id="col-completed" class="d-grid gap-3">
+                <!-- Tasks will be injected here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Task Detail Modal -->
+<div class="modal fade" id="taskModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content shadow-lg border-0">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title" id="taskModalLabel">Task Details</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-4">
+                    <div class="col-md-8">
+                        <h3 id="task-detail-title" class="fw-bold"></h3>
+                        <p id="task-detail-desc" class="text-muted"></p>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-light border-0">
+                            <div class="card-body py-2">
+                                <label class="small text-muted d-block">Status</label>
+                                <select class="form-select form-select-sm mb-2" id="task-detail-status">
+                                    <option value="pending">Pending</option>
+                                    <option value="in_progress">In Progress</option>
+                                    <option value="completed">Completed</option>
+                                </select>
+                                <label class="small text-muted d-block">Priority</label>
+                                <span class="badge w-100" id="task-detail-priority"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <h6 class="fw-bold text-uppercase small border-bottom pb-2">Subtasks</h6>
+                <div id="task-detail-subtasks" class="list-group list-group-flush mb-4">
+                    <!-- Subtasks -->
+                </div>
+
+                <div class="bg-light p-3 rounded small">
+                    <div class="row">
+                        <div class="col-6">
+                            <strong>Assigned:</strong> <span id="task-detail-assignee"></span>
+                        </div>
+                        <div class="col-6">
+                            <strong>Spec Ref:</strong> <span id="task-detail-spec"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="saveTaskStatus()">Update Authority</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Task data simulation
+    const mockTasks = [
+        {
+            id: "task_015",
+            title: "M1: Dev Sensor Platform",
+            desc: "Build full sensor-to-dashboard pipeline using cheap dev sensors.",
+            status: "pending",
+            priority: "high",
+            role: "Embedded_Engineer",
+            spec: "SPEC-005"
+        },
+        {
+            id: "task_016",
+            title: "M2: Health Circuit",
+            desc: "Internal monitoring and cross-restart relay.",
+            status: "in_progress",
+            priority: "high",
+            role: "Embedded_Engineer",
+            spec: "SPEC-006"
+        },
+        {
+            id: "task_032",
+            title: "LoRa Test Panel UI",
+            desc: "Web-based diagnostic interface for radio link tuning.",
+            status: "completed",
+            priority: "medium",
+            role: "Frontend_Engineer",
+            spec: "SPEC-018"
+        }
+    ];
+
+    function renderTasks() {
+        const cols = {
+            'pending': document.getElementById('col-pending'),
+            'in_progress': document.getElementById('col-progress'),
+            'completed': document.getElementById('col-completed')
+        };
+        const counts = { 'pending': 0, 'in_progress': 0, 'completed': 0 };
+
+        Object.values(cols).forEach(c => c.innerHTML = '');
+
+        mockTasks.forEach(task => {
+            counts[task.status]++;
+            const card = document.createElement('div');
+            card.className = `card task-card border-0 shadow-sm priority-${task.priority}`;
+            card.innerHTML = `
+                <div class="card-body p-3" onclick="showTaskDetail('${task.id}')">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="badge bg-light text-dark border small">${task.spec}</span>
+                        <span class="text-muted tiny font-monospace">#${task.id.split('_')[1]}</span>
+                    </div>
+                    <h6 class="fw-bold mb-1">${task.title}</h6>
+                    <p class="small text-muted mb-3">${task.desc.substring(0, 60)}...</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="small text-primary fw-bold">${task.role.split('_')[0]}</span>
+                        <i class="bi bi-person-circle text-muted"></i>
+                    </div>
+                </div>
+            `;
+            cols[task.status].appendChild(card);
+        });
+
+        document.getElementById('count-pending').innerText = counts.pending;
+        document.getElementById('count-progress').innerText = counts.in_progress;
+        document.getElementById('count-completed').innerText = counts.completed;
+    }
+
+    function showTaskDetail(id) {
+        const task = mockTasks.find(t => t.id === id);
+        document.getElementById('task-detail-title').innerText = task.title;
+        document.getElementById('task-detail-desc').innerText = task.desc;
+        document.getElementById('task-detail-status').value = task.status;
+        document.getElementById('task-detail-assignee').innerText = task.role;
+        document.getElementById('task-detail-spec').innerText = task.spec;
+        
+        const prio = document.getElementById('task-detail-priority');
+        prio.innerText = task.priority.toUpperCase();
+        prio.className = `badge w-100 bg-${task.priority === 'critical' ? 'danger' : (task.priority === 'high' ? 'warning text-dark' : 'info')}`;
+
+        const modal = new bootstrap.Modal(document.getElementById('taskModal'));
+        modal.show();
+    }
+
+    function saveTaskStatus() {
+        alert("ADT Authority: In an append-only ledger, you must log a 'task_status_update' event to the ADS to change state. (Action Blocked: app.py not connected)");
+    }
+
+    document.addEventListener('DOMContentLoaded', renderTasks);
+</script>
+{% endblock %}

@@ -257,12 +257,16 @@ Main Circuit Frozen:
 
 ## 7. Environmental Requirements
 
-| Parameter | Requirement | Status |
-|-----------|-------------|--------|
-| Waterproofing | [PENDING - IP rating] | TBD |
-| Operating Temp | [PENDING] | TBD |
-| Deployment Duration | [PENDING] | TBD |
-| Wave/Weather | [PENDING] | TBD |
+| Parameter | Requirement | Standard |
+|-----------|-------------|----------|
+| Waterproofing | IP68 (Hull/Underwater), IP67 (Internal Box) | SPEC-012 |
+| Operating Temp | -10°C to +55°C (Summer Port Operation) | SPEC-012 |
+| Deployment | Continuous saltwater immersion (Sagres) | SPEC-012 |
+| Wave/Weather | Standard Atlantic coastal conditions | SPEC-012 |
+| **Ground Truth** | Tinned copper wiring, SS316 only, Galvanic isolation | SPEC-012 |
+
+> **Grounding in Reality:** Following the 2026-02-05 Hardware Audit, all environmental
+> mitigations (PIR humidity, Inverter EMI, pH drift) are standardized in SPEC-012.
 
 ---
 

@@ -15,77 +15,227 @@
         <a class="navbar-brand" href="#">
             <span class="text-success fw-bold">OCEANPULSE</span> // OpsCenter
         </a>
-        <div class="d-flex">
-            <span class="badge bg-success me-2" id="conn-main">MAIN: ONLINE</span>
-            <span class="badge bg-success" id="conn-health">HEALTH: ONLINE</span>
+        <div class="d-flex align-items-center">
+            <span class="badge bg-secondary me-2" id="conn-gate">GATEWAY: ---</span>
+            <span class="badge bg-danger me-2" id="conn-main">MAIN: OFFLINE</span>
+            <span class="badge bg-danger" id="conn-health">HEALTH: OFFLINE</span>
         </div>
     </div>
 </nav>
 
 <div class="container-fluid mt-4">
-    <div class="row">
-        <!-- SYSTEM A: MAIN MISSION -->
-        <div class="col-md-8">
-            <div class="card bg-dark border-success mb-4">
-                <div class="card-header border-success text-success fw-bold">
-                    SYSTEM A: MISSION STATUS
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <h5 class="text-muted">TDS SENSOR</h5>
-                            <h1 class="display-4 fw-bold text-white" id="val-tds">---</h1>
-                            <small class="text-muted">ppm</small>
+    <!-- TABS NAVIGATION -->
+    <ul class="nav nav-tabs border-secondary mb-4" id="opsTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active bg-dark text-success border-secondary" id="mission-tab" data-bs-toggle="tab" data-bs-target="#mission" type="button" role="tab" aria-controls="mission" aria-selected="true">MISSION CONTROL</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link bg-dark text-info border-secondary" id="lora-tab" data-bs-toggle="tab" data-bs-target="#lora" type="button" role="tab" aria-controls="lora" aria-selected="false">LORA DIAGNOSTICS</button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="opsTabsContent">
+        <!-- MISSION CONTROL TAB -->
+        <div class="tab-pane fade show active" id="mission" role="tabpanel" aria-labelledby="mission-tab">
+            <div class="row">
+                <!-- SYSTEM A: MAIN MISSION -->
+                <div class="col-md-8">
+                    <div class="card bg-dark border-success mb-4">
+                        <div class="card-header border-success text-success fw-bold d-flex justify-content-between align-items-center">
+                            <span>SYSTEM A: MISSION STATUS</span>
+                            <div class="d-flex gap-2 align-items-center">
+                                <button class="btn btn-outline-danger btn-xs py-0 px-2" style="font-size: 0.7rem;" onclick="confirmRebootHealth()">REBOOT HEALTH (via Main)</button>
+                                <span class="badge bg-secondary">ID: MAIN-01</span>
+                            </div>
                         </div>
-                        <div class="col-md-4">
-                            <h5 class="text-muted">VOLTAGE</h5>
-                            <h2 class="text-white" id="val-volt">--- V</h2>
-                        </div>
-                        <div class="col-md-4 text-end">
-                            <h5 class="text-muted">RELAY</h5>
-                            <span class="badge bg-secondary p-2" id="val-relay">OFF</span>
-                            <div class="mt-3">
-                                <button class="btn btn-outline-success w-100 mb-2" onclick="sendCommand('RELAY_ON')">ACTIVATE</button>
-                                <button class="btn btn-outline-danger w-100" onclick="sendCommand('RELAY_OFF')">DEACTIVATE</button>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-3 border-end border-secondary">
+                                    <h5 class="text-muted text-uppercase small">TDS Sensor</h5>
+                                    <h1 class="display-5 fw-bold text-white font-monospace" id="val-tds">---</h1>
+                                    <small class="text-muted">ppm</small>
+                                </div>
+                                <div class="col-md-3 border-end border-secondary">
+                                    <h5 class="text-muted text-uppercase small">pH Level</h5>
+                                    <h1 class="display-5 fw-bold text-warning font-monospace" id="val-ph">7.0</h1>
+                                    <small class="text-muted">Neutral</small>
+                                </div>
+                                <div class="col-md-3 border-end border-secondary">
+                                    <h5 class="text-muted text-uppercase small">Water Temp</h5>
+                                    <h1 class="display-5 fw-bold text-info font-monospace" id="val-wtemp">--.-</h1>
+                                    <small class="text-muted">°C (DS18B20)</small>
+                                </div>
+                                <div class="col-md-3 text-end">
+                                    <h5 class="text-muted text-uppercase small">UV Lighting (Relay)</h5>
+                                    <span class="badge bg-secondary p-2 mb-2" id="val-relay">OFF</span>
+                                    <div class="d-grid gap-2">
+                                        <button class="btn btn-outline-success btn-sm" onclick="sendCommand('RELAY_ON')">
+                                            <i class="bi bi-lightbulb-fill"></i> UV ON
+                                        </button>
+                                        <button class="btn btn-outline-danger btn-sm" onclick="sendCommand('RELAY_OFF')">
+                                            <i class="bi bi-lightbulb-off"></i> UV OFF
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-4 border border-secondary bg-black" style="height: 350px; position: relative;">
+                                <canvas id="tdsChart"></canvas>
                             </div>
                         </div>
                     </div>
-                    <div class="mt-4" style="height: 300px;">
-                        <canvas id="tdsChart"></canvas>
+                </div>
+
+                <!-- SYSTEM B: HEALTH & LOGS -->
+                <div class="col-md-4">
+                    <div class="card bg-dark border-secondary mb-4">
+                        <div class="card-header border-secondary text-info fw-bold d-flex justify-content-between align-items-center">
+                            <span>SYSTEM B: HEALTH</span>
+                            <button class="btn btn-outline-danger btn-xs py-0 px-2" style="font-size: 0.7rem;" onclick="confirmRebootMission()">REBOOT MISSION (via Health)</button>
+                        </div>
+                        <div class="card-body">
+                            <ul class="list-group list-group-flush bg-dark">
+                                <li class="list-group-item bg-dark text-white border-secondary d-flex justify-content-between">
+                                    <span>Internal Temp</span>
+                                    <span class="fw-bold text-info font-monospace" id="val-temp">--.- °C</span>
+                                </li>
+                                <li class="list-group-item bg-dark text-white border-secondary d-flex justify-content-between">
+                                    <span>Internal Humidity</span>
+                                    <span class="fw-bold text-warning font-monospace" id="val-humid">-- %</span>
+                                </li>
+                                <li class="list-group-item bg-dark text-white border-secondary d-flex justify-content-between">
+                                    <span>Main Bus Voltage</span>
+                                    <span class="fw-bold text-success font-monospace" id="val-volt">--.- V</span>
+                                </li>
+                                <li class="list-group-item bg-dark text-white border-secondary d-flex justify-content-between">
+                                    <span>Uptime</span>
+                                    <span class="text-muted font-monospace" id="val-uptime">--</span>
+                                </li>
+                                <li class="list-group-item bg-dark text-white border-secondary d-flex justify-content-between">
+                                    <span>CPU Load</span>
+                                    <span class="text-muted font-monospace">12%</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card bg-dark border-secondary">
+                        <div class="card-header border-secondary text-white fw-bold">
+                            EVENT LOG
+                        </div>
+                        <div class="card-body bg-black" style="height: 300px; overflow-y: auto; font-family: monospace; font-size: 0.8rem;">
+                            <div id="console-log" class="text-success">
+                                > System Initialized...<br>
+                                > Connecting to Telemetry Stream...
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- SYSTEM B: HEALTH & LOGS -->
-        <div class="col-md-4">
-            <div class="card bg-dark border-secondary mb-4">
-                <div class="card-header border-secondary text-info fw-bold">
-                    SYSTEM B: HEALTH MONITOR
+        <!-- LORA DIAGNOSTICS TAB -->
+        <div class="tab-pane fade" id="lora" role="tabpanel" aria-labelledby="lora-tab">
+            <div class="row">
+                <div class="col-md-8">
+                    <!-- SIGNAL ANALYSIS -->
+                    <div class="card bg-dark border-info mb-4">
+                        <div class="card-header border-info text-info fw-bold d-flex justify-content-between align-items-center">
+                            <span>RADIO SIGNAL ANALYSIS</span>
+                            <div class="d-flex align-items-center">
+                                <small class="text-muted me-2">LQI:</small>
+                                <span class="badge bg-success" id="val-lqi">100%</span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="row text-center mb-4">
+                                <div class="col-md-4">
+                                    <h6 class="text-muted small text-uppercase">RSSI</h6>
+                                    <h2 class="text-white font-monospace mb-0" id="val-rssi">--- dBm</h2>
+                                    <div class="progress bg-black border border-secondary mt-2" style="height: 10px;">
+                                        <div id="pb-rssi" class="progress-bar bg-info" role="progressbar" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <h6 class="text-muted small text-uppercase">SNR</h6>
+                                    <h2 class="text-white font-monospace mb-0" id="val-snr">--- dB</h2>
+                                    <div class="progress bg-black border border-secondary mt-2" style="height: 10px;">
+                                        <div id="pb-snr" class="progress-bar bg-info" role="progressbar" style="width: 50%"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <h6 class="text-muted small text-uppercase">Latency (RTT)</h6>
+                                    <h2 class="text-warning font-monospace mb-0" id="val-rtt">--- ms</h2>
+                                    <span class="badge bg-secondary mt-2" id="badge-latency">IDLE</span>
+                                </div>
+                            </div>
+                            <div class="border border-secondary bg-black" style="height: 300px; position: relative;">
+                                <canvas id="loraChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <ul class="list-group list-group-flush bg-dark">
-                        <li class="list-group-item bg-dark text-white border-secondary">
-                            Internal Temp: <span class="fw-bold text-info float-end" id="val-temp">--.- °C</span>
-                        </li>
-                        <li class="list-group-item bg-dark text-white border-secondary">
-                            Uptime: <span class="float-end text-muted" id="val-uptime">--</span>
-                        </li>
-                        <li class="list-group-item bg-dark text-white border-secondary">
-                            CPU Load: <span class="float-end text-muted">12%</span>
-                        </li>
-                    </ul>
-                </div>
-            </div>
 
-            <div class="card bg-dark border-secondary">
-                <div class="card-header border-secondary text-white fw-bold">
-                    EVENT LOG
-                </div>
-                <div class="card-body bg-black" style="height: 250px; overflow-y: auto; font-family: monospace; font-size: 0.8rem;">
-                    <div id="console-log" class="text-success">
-                        > System Initialized...<br>
-                        > Connecting to Telemetry Stream...
+                <div class="col-md-4">
+                    <!-- CONFIGURATION -->
+                    <div class="card bg-dark border-secondary mb-4">
+                        <div class="card-header border-secondary text-white fw-bold">MODEM CONFIGURATION</div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="text-muted small">Modem Preset</label>
+                                <select class="form-select form-select-sm bg-black text-info border-secondary" id="lora-preset" onchange="updateLoraConfig()">
+                                    <option value="SHORT_FAST">SHORT_FAST</option>
+                                    <option value="LONG_SLOW">LONG_SLOW</option>
+                                    <option value="VERY_LONG_SLOW">VERY_LONG_SLOW</option>
+                                    <option value="CUSTOM">CUSTOM (Manual)</option>
+                                </select>
+                            </div>
+                            <div id="custom-lora-config" class="d-none">
+                                <div class="row g-2 mb-3">
+                                    <div class="col-6">
+                                        <label class="text-muted tiny">Freq (MHz)</label>
+                                        <input type="number" class="form-control form-control-sm bg-black text-white border-secondary" id="lora-freq" value="868.1">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="text-muted tiny">SF</label>
+                                        <select class="form-select form-select-sm bg-black text-white border-secondary" id="lora-sf">
+                                            <option value="7">SF7</option>
+                                            <option value="8">SF8</option>
+                                            <option value="9">SF9</option>
+                                            <option value="10">SF10</option>
+                                            <option value="11">SF11</option>
+                                            <option value="12" selected>SF12</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <button class="btn btn-outline-info btn-sm w-100 mb-3" onclick="applyCustomConfig()">APPLY CUSTOM</button>
+                            </div>
+                            <div class="mb-3">
+                                <label class="text-muted small">Regulatory Region</label>
+                                <select class="form-select form-select-sm bg-black text-white border-secondary" id="lora-region">
+                                    <option value="EU868" selected>EU_868 (Sagres)</option>
+                                    <option value="US915">US_915</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- DIAGNOSTICS -->
+                    <div class="card bg-dark border-secondary">
+                        <div class="card-header border-secondary text-white fw-bold">LINK TESTS</div>
+                        <div class="card-body">
+                            <button class="btn btn-outline-info btn-sm w-100 mb-2" onclick="runLoraTest('PING')">PING TEST (Atomic RTT)</button>
+                            <button class="btn btn-outline-warning btn-sm w-100 mb-2" onclick="runLoraTest('STRESS')">PDR STRESS TEST (10 Packets)</button>
+                            
+                            <div id="stress-progress" class="d-none mt-3">
+                                <div class="d-flex justify-content-between small text-muted mb-1">
+                                    <span>Stress Test Progress</span>
+                                    <span id="stress-count">0/10</span>
+                                </div>
+                                <div class="progress bg-black border border-secondary" style="height: 10px;">
+                                    <div id="pb-stress" class="progress-bar bg-warning progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -93,6 +243,7 @@
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="/static/js/dashboard.js"></script>
 </body>
 </html>

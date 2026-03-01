@@ -1,6 +1,13 @@
-.cortex/active_tasks/
+_cortex/active_tasks/
 __pycache__/
 *.pyc
 .env
 .DS_Store
 node_modules/
+venv/
+obs_center/venv/
+comms/venv/
+obs_center/server.log
+*.bak
+.claude/
+.gemini/

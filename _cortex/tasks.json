@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
-  "last_updated": "2026-01-31T13:15:00Z",
-  "critical_notice": "SPEC-000 (Target Architecture) is APPROVED. Focus now shifting to hardware stability.",
+  "last_updated": "2026-02-09T13:45:00Z",
+  "critical_notice": "SPEC-004 (Implementation Roadmap) DRAFTED. 8 milestones defined (M1-M7). Pending human approval. Dev sensors first, ocean-grade later.",
   "tasks": [
     {
       "id": "task_000",
@@ -39,8 +39,8 @@
     {
       "id": "task_001",
       "title": "TDS Sensor Validation",
-      "description": "Validate TDS sensor readings via Arduino Mega on Pin A0. STATUS: Firmware optimized for faster sampling and added UPTIME diagnostics. BLOCKER: Pis unreachable via 192.168.43.x network.",
-      "status": "in_progress",
+      "description": "Validate TDS sensor readings via Arduino Mega on Pin A0. STATUS: Dry-test of firmware stack SUCCESS. Pi-to-Mega JSON protocol verified. DATA: 1235.5 ppm (Dry/Air).",
+      "status": "completed",
       "priority": "high",
       "spec_ref": "SPEC-002",
       "phase": "1",
@@ -48,9 +48,16 @@
       "assigned_agent": "GEMINI",
       "created_by": "Systems_Architect",
       "created_at": "2026-01-30T20:00:00Z",
-      "completed_at": null,
+      "completed_at": "2026-02-06T11:45:00Z",
       "blocked_by": [],
-      "subtasks": []
+      "subtasks": [
+        {
+          "id": "task_001_sub_001",
+          "title": "Wet Calibration",
+          "description": "Submerge TDS sensor in water and calibrate against known TDS solution. STATUS: Wet test SUCCESS. Sensor stabilized at 515.3 ppm.",
+          "status": "completed"
+        }
+      ]
     },
     {
       "id": "task_002",
@@ -87,16 +94,16 @@
     {
       "id": "task_004",
       "title": "LoRa Module Integration",
-      "description": "Connect and configure LoRa modules for Pi-to-Pi communication per SPEC-002",
-      "status": "pending",
+      "description": "Connect and configure LoRa modules for Pi-to-Pi communication per SPEC-002. STATUS: Python bridges (Main/Health) implemented with LoRa-E5 AT P2P mode.",
+      "status": "completed",
       "priority": "high",
       "spec_ref": "SPEC-002",
       "phase": "1",
       "assigned_role": "Network_Engineer",
-      "assigned_agent": null,
+      "assigned_agent": "GEMINI",
       "created_by": "Systems_Architect",
       "created_at": "2026-01-30T22:30:00Z",
-      "completed_at": null,
+      "completed_at": "2026-02-03T13:00:00Z",
       "blocked_by": [],
       "subtasks": []
     },
@@ -104,7 +111,7 @@
       "id": "task_005",
       "title": "Backend API Routes",
       "description": "Implement Flask routes: GET /api/telemetry, POST /api/command per SPEC-001",
-      "status": "in_progress",
+      "status": "completed",
       "priority": "high",
       "spec_ref": "SPEC-001",
       "phase": "1",
@@ -112,7 +119,7 @@
       "assigned_agent": "GEMINI",
       "created_by": "Systems_Architect",
       "created_at": "2026-01-30T22:30:00Z",
-      "completed_at": null,
+      "completed_at": "2026-02-03T12:22:00Z",
       "blocked_by": [],
       "subtasks": []
     },
@@ -120,15 +127,15 @@
       "id": "task_006",
       "title": "Frontend Dashboard UI",
       "description": "Build dark-mode mission control UI with System A and System B cards per SPEC-001",
-      "status": "in_progress",
+      "status": "completed",
       "priority": "high",
       "spec_ref": "SPEC-001",
       "phase": "1",
       "assigned_role": "Frontend_Engineer",
-      "assigned_agent": null,
+      "assigned_agent": "GEMINI",
       "created_by": "Systems_Architect",
       "created_at": "2026-01-30T22:30:00Z",
-      "completed_at": null,
+      "completed_at": "2026-02-03T12:25:00Z",
       "blocked_by": [],
       "subtasks": []
     },
@@ -136,15 +143,15 @@
       "id": "task_007",
       "title": "Real-time TDS Chart",
       "description": "Implement Chart.js graph showing last 60 seconds of TDS data with live updates",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "spec_ref": "SPEC-001",
       "phase": "1",
       "assigned_role": "Frontend_Engineer",
-      "assigned_agent": null,
+      "assigned_agent": "GEMINI",
       "created_by": "Systems_Architect",
       "created_at": "2026-01-30T22:30:00Z",
-      "completed_at": null,
+      "completed_at": "2026-02-03T12:25:00Z",
       "blocked_by": ["task_005", "task_006"],
       "subtasks": []
     },
@@ -152,15 +159,15 @@
       "id": "task_008",
       "title": "Dual-Circuit Control Panel",
       "description": "Add separate control cards for Main Circuit and Health Circuit per SPEC-002 Section 3",
-      "status": "pending",
+      "status": "completed",
       "priority": "medium",
       "spec_ref": "SPEC-002",
       "phase": "1",
       "assigned_role": "Frontend_Engineer",
-      "assigned_agent": null,
+      "assigned_agent": "GEMINI",
       "created_by": "Systems_Architect",
       "created_at": "2026-01-30T22:30:00Z",
-      "completed_at": null,
+      "completed_at": "2026-02-03T12:25:00Z",
       "blocked_by": ["task_006"],
       "subtasks": []
     },
@@ -246,6 +253,360 @@
       "created_at": "2026-01-30T22:30:00Z",
       "completed_at": "2026-01-31T13:10:00Z",
       "blocked_by": ["task_009", "task_010", "task_011"],
+      "subtasks": []
+    },
+    {
+      "id": "task_014",
+      "title": "Approve SPEC-004: Implementation Roadmap",
+      "description": "Human review and approval of SPEC-004 which defines 8 milestones (M1-M7) from bench to buoy. Includes dev sensor strategy, procurement waves, and dependency graph.",
+      "status": "in_progress",
+      "priority": "critical",
+      "spec_ref": "SPEC-004",
+      "phase": "1",
+      "assigned_role": "Systems_Architect",
+      "assigned_agent": "CLAUDE",
+      "requires_human": true,
+      "created_by": "Systems_Architect",
+      "created_at": "2026-02-05T17:00:00Z",
+      "completed_at": null,
+      "blocked_by": [],
+      "subtasks": []
+    },
+    {
+      "id": "task_015",
+      "title": "M1: Dev Sensor Platform",
+      "description": "Build full sensor-to-dashboard pipeline using cheap dev sensors (TDS, DS18B20, pH). Design sensor abstraction layer for future ocean-grade swap. See SPEC-005 (to be written).",
+      "status": "pending",
+      "priority": "high",
+      "spec_ref": "SPEC-005",
+      "phase": "1",
+      "milestone": "M1",
+      "assigned_role": "Embedded_Engineer",
+      "assigned_agent": null,
+      "created_by": "Systems_Architect",
+      "created_at": "2026-02-05T17:00:00Z",
+      "completed_at": null,
+      "blocked_by": ["task_014"],
+      "subtasks": [
+        {
+          "id": "task_015_sub_001",
+          "title": "Write SPEC-005 (Dev Sensor Platform)",
+          "description": "Detailed spec for M1: pinouts, serial commands, abstraction layer, dashboard updates",
+          "status": "pending"
+        },
+        {
+          "id": "task_015_sub_002",
+          "title": "Firmware: sensor abstraction layer + dev drivers",
+          "description": "TDS analog, DS18B20 OneWire, cheap pH analog drivers with standardized command interface",
+          "status": "pending"
+        },
+        {
+          "id": "task_015_sub_003",
+          "title": "Bridge + Dashboard: multi-sensor display",
+          "description": "Forward all sensor types to Obs Center, display on dashboard",
+          "status": "pending"
+        }
+      ]
+    },
+    {
+      "id": "task_016",
+      "title": "M2: Health Circuit & Self-Healing",
+      "description": "Health Arduino monitoring internal conditions, Pi-to-Pi LAN comms, cross-restart relay. See SPEC-006 (to be written).",
+      "status": "in_progress",
+      "priority": "high",
+      "spec_ref": "SPEC-006",
+      "phase": "1",
+      "milestone": "M2",
+      "assigned_role": "Embedded_Engineer",
+      "assigned_agent": "GEMINI",
+      "created_by": "Systems_Architect",
+      "created_at": "2026-02-05T17:00:00Z",
+      "completed_at": null,
+      "blocked_by": ["task_014"],
+      "subtasks": [
+        {
+          "id": "task_016_sub_001",
+          "title": "Write SPEC-006 (Health Circuit)",
+          "description": "Detailed spec for M2: health sensors, LAN protocol, restart mechanism",
+          "status": "in_progress"
+        },
+        {
+          "id": "task_016_sub_002",
+          "title": "Firmware: REBOOT:SYS logic",
+          "description": "Implement hardware power-cycle logic on Pin 3 for both Main and Health Arduinos.",
+          "status": "completed"
+        }
+      ]
+    },
+    {
+      "id": "task_017",
+      "title": "M2.5: LoRa Test & Configuration Tool",
+      "description": "Build LoRa parameter tuning and range testing tool. STATUS: SPEC-007 written. AT firmware (9600 baud) VERIFIED. lora_tester.py and lora_handler.py fully support AT mode.",
+      "status": "completed",
+      "priority": "high",
+      "spec_ref": "SPEC-007",
+      "phase": "1",
+      "milestone": "M2.5",
+      "assigned_role": "Network_Engineer",
+      "assigned_agent": "GEMINI",
+      "created_by": "Systems_Architect",
+      "created_at": "2026-02-05T17:00:00Z",
+      "completed_at": "2026-02-06T12:21:00Z",
+      "blocked_by": ["task_014"],
+      "subtasks": [
+        {
+          "id": "task_017_sub_001",
+          "title": "Write SPEC-007 (LoRa Configurator)",
+          "description": "Detailed spec for M2.5: parameter control, metrics, range test mode, profiles",
+          "status": "completed"
+        },
+        {
+          "id": "task_017_sub_002",
+          "title": "Implement lora_tester.py with AT support",
+          "description": "Add support for LoRa-E5 factory AT command set (9600 baud).",
+          "status": "completed"
+        }
+      ]
+    },
+    {
+      "id": "task_018",
+      "title": "M3: LoRa Communication Chain",
+      "description": "End-to-end: Sensor \u2192 Mega \u2192 Pi \u2192 LoRa \u2192 Onshore Gateway \u2192 Obs Center. STATUS: VERIFIED. Full chain functional using LoRa-E5 AT P2P mode. Sensors data relays to Flask API.",
+      "status": "completed",
+      "priority": "high",
+      "spec_ref": "SPEC-008",
+      "phase": "1",
+      "milestone": "M3",
+      "assigned_role": "Network_Engineer",
+      "assigned_agent": "GEMINI",
+      "created_by": "Systems_Architect",
+      "created_at": "2026-02-05T17:00:00Z",
+      "completed_at": "2026-02-06T12:43:00Z",
+      "blocked_by": ["task_017"],
+      "subtasks": [
+        {
+          "id": "task_018_sub_001",
+          "title": "Write SPEC-008 (LoRa Chain)",
+          "description": "Detailed spec for M3: gateway setup, packet format, redundant path, Obs Center integration",
+          "status": "completed"
+        },
+        {
+          "id": "task_018_sub_002",
+          "title": "Implement onshore_bridge.py",
+          "description": "Gateway relay script to forward LoRa packets to web API.",
+          "status": "completed"
+        },
+        {
+          "id": "task_018_sub_003",
+          "title": "Strictly LoRa Telemetry Enforcement",
+          "description": "Configure bridges to use ONLY LoRa for mission telemetry and commands.",
+          "status": "completed"
+        }
+      ]
+    },
+    {
+      "id": "task_019",
+      "title": "M4: Safe-Pulse Oil Detection System",
+      "description": "Complete UV fluorescence detection with Triple-Lock safety (PIR + Ultrasonic + Warning Strobe), NE555 hard-stop, camera sync, edge AI. See SPEC-009 (to be written).",
+      "status": "pending",
+      "priority": "critical",
+      "spec_ref": "SPEC-009",
+      "phase": "1",
+      "milestone": "M4",
+      "assigned_role": "Embedded_Engineer",
+      "assigned_agent": null,
+      "created_by": "Systems_Architect",
+      "created_at": "2026-02-05T17:00:00Z",
+      "completed_at": null,
+      "blocked_by": ["task_015", "task_018"],
+      "subtasks": [
+        {
+          "id": "task_019_sub_001",
+          "title": "Write SPEC-009 (Oil Detection)",
+          "description": "Detailed spec for M4: NE555 circuit, safety interlock firmware, camera sync, AI pipeline",
+          "status": "pending"
+        }
+      ]
+    },
+    {
+      "id": "task_020",
+      "title": "M5: Power Autonomy",
+      "description": "LiFePO4 + Victron MPPT + Solar integration. Real power budget measurement. 48h autonomy target. See SPEC-010 (to be written).",
+      "status": "pending",
+      "priority": "high",
+      "spec_ref": "SPEC-010",
+      "phase": "1",
+      "milestone": "M5",
+      "assigned_role": "Embedded_Engineer",
+      "assigned_agent": null,
+      "created_by": "Systems_Architect",
+      "created_at": "2026-02-05T17:00:00Z",
+      "completed_at": null,
+      "blocked_by": ["task_015", "task_016"],
+      "subtasks": [
+        {
+          "id": "task_020_sub_001",
+          "title": "Write SPEC-010 (Power)",
+          "description": "Detailed spec for M5: power distribution, charging, budget measurements, low-power modes",
+          "status": "pending"
+        }
+      ]
+    },
+    {
+      "id": "task_021",
+      "title": "M6: Ocean-Grade Sensor Upgrade",
+      "description": "Swap dev sensors for Atlas EZO (EC + DO) and Bar30. RS485/I2C wiring. Validate sensor abstraction layer -- only drivers change. See SPEC-011 (to be written).",
+      "status": "pending",
+      "priority": "high",
+      "spec_ref": "SPEC-011",
+      "phase": "1",
+      "milestone": "M6",
+      "assigned_role": "Embedded_Engineer",
+      "assigned_agent": null,
+      "created_by": "Systems_Architect",
+      "created_at": "2026-02-05T17:00:00Z",
+      "completed_at": null,
+      "blocked_by": ["task_015", "task_019"],
+      "subtasks": [
+        {
+          "id": "task_021_sub_001",
+          "title": "Write SPEC-011 (Ocean-Grade Sensors)",
+          "description": "Detailed spec for M6: Atlas EZO wiring, calibration, driver swap, new sensor types (DO, Depth)",
+          "status": "pending"
+        }
+      ]
+    },
+    {
+      "id": "task_022",
+      "title": "M7: Integration & Enclosure",
+      "description": "Waterproof housing, Weipu connectors, physical mounting, land integration test, controlled water deployment. See SPEC-012.",
+      "status": "pending",
+      "priority": "high",
+      "spec_ref": "SPEC-012",
+      "phase": "1",
+      "milestone": "M7",
+      "assigned_role": "Integration_Engineer",
+      "assigned_agent": null,
+      "created_by": "Systems_Architect",
+      "created_at": "2026-02-05T17:00:00Z",
+      "completed_at": null,
+      "blocked_by": ["task_015", "task_016", "task_017", "task_018", "task_019", "task_020", "task_021"],
+      "subtasks": [
+        {
+          "id": "task_022_sub_001",
+          "title": "Write SPEC-012 (Integration)",
+          "description": "Detailed spec for M7: enclosure design, connector layout, mounting plan, test protocol",
+          "status": "completed"
+        }
+      ]
+    },
+    {
+      "id": "task_032",
+      "title": "Implement LoRa Test Panel UI",
+      "description": "Develop the web-based diagnostic interface for LoRa radio link tuning and testing per SPEC-018.",
+      "status": "pending",
+      "priority": "medium",
+      "spec_ref": "SPEC-018",
+      "phase": "1",
+      "assigned_role": "Frontend_Engineer",
+      "assigned_agent": null,
+      "created_by": "Systems_Architect",
+      "created_at": "2026-02-09T11:05:00Z",
+      "completed_at": null,
+      "blocked_by": ["task_017"],
+      "subtasks": []
+    },
+    {
+      "id": "task_033",
+      "title": "M3.1: Downstream Telecommand Handler",
+      "description": "Implement the telecommand parser on the buoy and the command dispatcher on the onshore gateway per SPEC-008.",
+      "status": "completed",
+      "priority": "high",
+      "spec_ref": "SPEC-008",
+      "phase": "1",
+      "assigned_role": "Network_Engineer",
+      "assigned_agent": "GEMINI",
+      "created_by": "Systems_Architect",
+      "created_at": "2026-02-09T13:12:00Z",
+      "completed_at": "2026-02-09T13:40:00Z",
+      "blocked_by": ["task_018"],
+      "subtasks": [
+        {
+          "id": "task_033_sub_001",
+          "title": "Buoy: Command Parser",
+          "description": "Listen for C:TARGET:CMD packets and route to local Serial Bridge.",
+          "status": "completed"
+        },
+        {
+          "id": "task_033_sub_002",
+          "title": "Gateway: Command Dispatcher",
+          "description": "Provide API endpoint for Obs Center to inject LoRa telecommands.",
+          "status": "completed"
+        }
+      ]
+    },
+    {
+      "id": "task_034",
+      "title": "Implement Headless Kiosk Display",
+      "description": "Set up Cage + Chromium on lab-center Pi to display the dashboard on the physical screen without a desktop interface per SPEC-021.",
+      "status": "completed",
+      "priority": "medium",
+      "spec_ref": "SPEC-021",
+      "phase": "1",
+      "assigned_role": "DevOps_Engineer",
+      "assigned_agent": "GEMINI",
+      "created_by": "Systems_Architect",
+      "created_at": "2026-02-09T13:25:00Z",
+      "completed_at": "2026-02-09T13:45:00Z",
+      "blocked_by": ["task_005", "task_006"],
+      "subtasks": []
+    },
+    {
+      "id": "task_023",
+      "title": "ADT Panel UI Refinements (SPEC-013)",
+      "description": "Implemented role-based grouping for completed tasks, spec status icons (Verified/Pending), and workflow auto-scroll. Verified modal close behavior.",
+      "status": "completed",
+      "priority": "medium",
+      "spec_ref": "SPEC-013",
+      "phase": "1",
+      "assigned_role": "Overseer",
+      "assigned_agent": "GEMINI",
+      "created_by": "Overseer",
+      "created_at": "2026-02-05T19:00:00Z",
+      "completed_at": "2026-02-05T19:15:00Z",
+      "blocked_by": [],
+      "subtasks": []
+    },
+    {
+      "id": "task_031",
+      "title": "Health Pi Connectivity Investigation",
+      "description": "Investigate and resolve Health Pi (192.168.43.49) reachability issues. STATUS: Pi is ONLINE and reachable. Serial ports detected. Permission issue resolved via dialout group addition.",
+      "status": "completed",
+      "priority": "high",
+      "spec_ref": "SPEC-002",
+      "phase": "1",
+      "assigned_role": "Network_Engineer",
+      "assigned_agent": "GEMINI",
+      "created_by": "Network_Engineer",
+      "created_at": "2026-02-06T11:57:00Z",
+      "completed_at": "2026-02-06T12:17:00Z",
+      "blocked_by": [],
+      "subtasks": []
+    },
+    {
+      "id": "task_035",
+      "title": "Implement Lab Center Connectivity",
+      "description": "Configure WiFi networks (Martinhal, DIRECT-Ez-WP6) and per-network proxy settings on lab-center Pi per SPEC-022. STATUS: Script ops/configure_lab_wifi.sh created. Pending manual execution due to Pi unreachable status.",
+      "status": "in_progress",
+      "priority": "high",
+      "spec_ref": "SPEC-022",
+      "phase": "1",
+      "assigned_role": "DevOps_Engineer",
+      "assigned_agent": "GEMINI",
+      "created_by": "Systems_Architect",
+      "created_at": "2026-02-17T13:20:00Z",
+      "completed_at": null,
+      "blocked_by": [],
       "subtasks": []
     }
   ]
