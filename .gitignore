@@ -1,6 +1,9 @@
 _cortex/active_tasks/
 _cortex/work_logs/
 _cortex/ads/events.jsonl
+_cortex/
+.claude/
+.gemini/
 __pycache__/
 *.pyc
 .env
@@ -11,8 +14,6 @@ obs_center/venv/
 comms/venv/
 obs_center/server.log
 *.bak
-.claude/
-.gemini/
 docs/
 lab_reference/
 *.pdf
@@ -20,3 +21,8 @@ lab_reference/
 *.jpg
 *.svg
 *.docx
+*.torrent
+adt_bootstrap.py
+adt_framework/
+adt_panel/
+UNIVERSAL_ADT_FRAMEWORK.md
