@@ -1,4 +1,6 @@
 _cortex/active_tasks/
+_cortex/work_logs/
+_cortex/ads/events.jsonl
 __pycache__/
 *.pyc
 .env
@@ -11,3 +13,10 @@ obs_center/server.log
 *.bak
 .claude/
 .gemini/
+docs/
+lab_reference/
+*.pdf
+*.png
+*.jpg
+*.svg
+*.docx
