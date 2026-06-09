@@ -1,0 +1,81 @@
+graph TD
+    %% ==========================================
+    %% POWER CORE (SPEC-010)
+    %% ==========================================
+    subgraph PowerCore[Power Core - Mauser Box]
+        Solar[2x 50W Slimline Panels] --> MPPT[Victron MPPT 75/15]
+        MPPT --> Batt[50Ah LiFePO4]
+        Batt --> FuseBlock[6-Way Marine Fuse Block]
+        
+        FuseBlock -- F1: 5A --> MainBus_A[12V System A]
+        FuseBlock -- F2: 3A --> MainBus_B[12V System B]
+        FuseBlock -- F3: 2A --> SensorBus_Pwr[12V EZO/LoRa]
+        FuseBlock -- F4: 30A --> RelayA[Relay A: 12V DC Switch]
+        FuseBlock -- F5: 2A --> DO_Pwr[12V Optical DO]
+    end
+
+    %% ==========================================
+    %% MISSION CIRCUIT (SYSTEM A)
+    %% ==========================================
+    subgraph SysA[SYSTEM A: MISSION - Dry Box 1]
+        BuckA[12V->5V Buck 5A] --> Pi5[RPi 5]
+        BuckA --> ArdA[Mega Main]
+        
+        %% Sensors
+        ArdA -- Pin A0 --> TDS[TDS/EC Sensor]
+        ArdA -- Pin A1 --> VoltA[Divider: 100k/47k]
+        MainBus_A --> VoltA
+        
+        %% I2C Bus
+        ArdA -- I2C 5V --> EZO[Atlas EZO-EC]
+        ArdA -- I2C 5V --> LLS[Logic Level Shifter]
+        LLS -- I2C 3.3V --> Bar30[Bar30 Depth]
+        
+        %% RS485 Bus
+        ArdA -- Serial2 --> MAX485[MAX485 Transceiver]
+        MAX485 -- RS485 --> DO[Optical DO Sensor]
+        DO_Pwr --> DO
+        
+        %% UV Pulse (Hybrid Architecture)
+        ArdA -- Pin 4 --> NE555[NE555 Safety Timer]
+        NE555 --> RelayB[Relay B: 220V AC Switch]
+        RelayA --> Inverter[300W Inverter]
+        Inverter --> RelayB
+        RelayB --> UV[Everbeam 50W UV Light]
+        
+        %% Safety Sensors
+        ArdA -- Pin 5/6 --> Sonic[Ultrasonic Sensor]
+        ArdA -- Pin 22 --> PIR[PIR Sensor]
+    end
+
+    %% ==========================================
+    %% HEALTH CIRCUIT (SYSTEM B)
+    %% ==========================================
+    subgraph SysB[SYSTEM B: HEALTH - Dry Box 2]
+        BuckB[12V->5V Buck 3A] --> Pi3[RPi 3 B+]
+        BuckB --> ArdB[Mega Health]
+        
+        ArdB -- I2C 5V --> SHT3x[SHT3x Temp/Hum]
+        ArdB -- Pin A1 --> VoltB[Divider: 100k/47k]
+        MainBus_B --> VoltB
+        
+        %% Cross-Reset Logic
+        ArdA -- Pin 2 --> ResetB[Relay System B Power]
+        ArdB -- Pin 2 --> ResetA[Relay System A Power]
+        
+        %% Victron Monitoring
+        MPPT -- VE.Direct-USB --> Pi3
+    end
+
+    %% ==========================================
+    %% COMMS BUS
+    %% ==========================================
+    Pi5 -- USB --> LoRaA[LoRa-E5 Mini A]
+    Pi3 -- USB --> LoRaB[LoRa-E5 Mini B]
+    
+    %% Hull Penetrations
+    subgraph Penetrations[Weipu IP68 Bulkheads]
+        SP21_7[SP21-7: Power/Comms Bus]
+        SP21_3[SP21-3: 220V AC UV]
+        SP13_9[SP13-9: Sensor Loom]
+    end

@@ -1,0 +1,88 @@
+_cortex/active_tasks/
+_cortex/work_logs/
+_cortex/ads/events.jsonl
+_cortex/
+.claude/
+.gemini/
+__pycache__/
+*.pyc
+.env
+.DS_Store
+node_modules/
+venv/
+obs_center/venv/
+comms/venv/
+obs_center/server.log
+*.bak
+docs/
+lab_reference/
+*.pdf
+*.png
+*.jpg
+*.svg
+*.docx
+*.torrent
+adt_bootstrap.py
+adt_framework/
+adt_panel/
+UNIVERSAL_ADT_FRAMEWORK.md
+CLAUDE_PROMPTS.md
+PHASE_2_SHARK_TAGS.md
+
+# OceanPulse internal operations manual — contains SSH credentials, admin tokens,
+# and FTP passwords. Served only on the admin panel (admin-gated); MUST NOT
+# appear in the public GitHub mirror.
+ops/SYSTEM_MANUAL.md
+
+# Runtime secrets loaded by obs_center/app.py and ops/*.sh deploy scripts.
+# See ops/secrets.env.example for the schema (tracked).
+ops/secrets.env
+
+# Local scratch + runtime artifacts (not for public)
+notes
+obs_center/data/
+obs_center/server.log
+obs_center/*.log
+
+# Firmware debug stubs (one-off bench probes — not part of the product)
+firmware/probe_*.py
+firmware/scan_*.py
+firmware/test_do_*.py
+firmware/test_do_dfrobot.py
+firmware/deep_scan_do.py
+firmware/dump_local.py
+firmware/kick_scan.py
+firmware/listen_serial.py
+firmware/scan_serial.py
+firmware/test_main_full.py
+firmware/test_serial.py
+firmware/test_stability.py
+firmware/test_stability_long.py
+firmware/test_watchdog.py
+
+# Firmware version history (kept locally for reference, not for public)
+firmware/main_mega/_versions/
+
+# Arduino build artifacts
+firmware/**/out/
+firmware/**/build/
+*.eep
+*.elf
+*.hex
+
+# Pre-phase-1 throwaway firmware sketches (kept locally for reference)
+firmware/blink_*.ino
+firmware/blink_fast/
+firmware/minimal_test.ino
+firmware/minimal_test/
+firmware/off_test.ino
+firmware/serial_blink.ino
+firmware/simple_test/
+
+# Pre-phase-1 throwaway test pages
+temp_server_check.html
+test_render.html
+web_presentation/test_*.php
+
+# ADT internal tooling (separate project — see _cortex/)
+ops/backup_ads.sh

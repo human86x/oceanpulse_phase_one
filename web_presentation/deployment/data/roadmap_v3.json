@@ -1,0 +1,588 @@
+{
+  "version": 1,
+  "updated_at": "2026-04-23T22:14:51+00:00",
+  "updated_by": "Gee (Sika variant TBD + frame temp measurement task)",
+  "meta": {
+    "title_en": "OceanPulse — Deployment Roadmap v3.0",
+    "title_ru": "OceanPulse — Дорожная карта развёртывания v3.0",
+    "subtitle_en": "Top-to-Bottom Assembly · HDG Frame Swap Strategy",
+    "subtitle_ru": "Сборка сверху вниз · Стратегия замены оцинкованной рамы",
+    "spec_ref": "SPEC-031"
+  },
+  "milestones": [
+    {
+      "id": "M1",
+      "title_en": "External & Power Core",
+      "title_ru": "Внешний каркас и силовой блок",
+      "description_en": "Solar assembly, antenna array, frame sealing, and the power box (Zone C).",
+      "description_ru": "Сборка солнечных панелей, антенный массив, герметизация рамы, силовой блок (Зона C).",
+      "owner": "Team",
+      "tasks": [
+        {
+          "id": "M1-T1",
+          "title_en": "Mount metallic frame and solar panels to upper buoy tower",
+          "title_ru": "Установить металлический каркас и солнечные панели на верхнюю башню буя",
+          "owner": "Team",
+          "status": "todo",
+          "notes": ""
+        },
+        {
+          "id": "M1-T2",
+          "title_en": "Mount 4G antennas (×2) and LoRa antennas (A/B) to top platform",
+          "title_ru": "Установить 4G-антенны (×2) и LoRa-антенны (A/B) на верхнюю платформу",
+          "owner": "Team",
+          "status": "todo",
+          "notes": ""
+        },
+        {
+          "id": "M1-T3",
+          "title_en": "Apply specialised silicone hydro-isolation to buoy frame",
+          "title_ru": "Нанести специальную силиконовую гидроизоляцию на каркас буя",
+          "owner": "Team",
+          "status": "todo",
+          "notes": "Use Sikasil Marine — highest temperature tolerance Sika variant. See shopping list S-002."
+        },
+        {
+          "id": "M1-T4",
+          "title_en": "Construct battery sub-shelf (upper shelf)",
+          "title_ru": "Собрать дополнительную полку для аккумулятора (верхняя полка)",
+          "owner": "Team",
+          "status": "todo",
+          "notes": ""
+        },
+        {
+          "id": "M1-T5",
+          "title_en": "Mount Zone C watertight box: Fuses, MPPT, 12V Relay",
+          "title_ru": "Установить герметичный бокс Зона C: Предохранители, MPPT, реле 12В",
+          "owner": "Team",
+          "status": "todo",
+          "notes": ""
+        },
+        {
+          "id": "M1-T6",
+          "title_en": "Connect 12V main bus from battery to fuse block",
+          "title_ru": "Подключить главную шину 12В от аккумулятора к блоку предохранителей",
+          "owner": "Team",
+          "status": "todo",
+          "notes": ""
+        }
+      ]
+    },
+    {
+      "id": "M2",
+      "title_en": "Internal Systems & Stacking",
+      "title_ru": "Внутренние системы и вертикальная сборка",
+      "description_en": "Vertical stacking of Pis and Megas, networking stack, and bench-to-buoy migration.",
+      "description_ru": "Вертикальная сборка Raspberry Pi и Arduino Mega, сетевой стек, перенос стенда в буй.",
+      "owner": "Team",
+      "tasks": [
+        {
+          "id": "M2-T1",
+          "title_en": "Fabricate/install angled mounts for Pi 5, Pi 3, Main Mega, Health Mega",
+          "title_ru": "Изготовить/установить угловые крепления для Pi 5, Pi 3, Main Mega, Health Mega",
+          "owner": "Team",
+          "status": "todo",
+          "notes": ""
+        },
+        {
+          "id": "M2-T2",
+          "title_en": "Stack components vertically inside Zone A/B watertight box",
+          "title_ru": "Вертикально разместить компоненты внутри герметичного бокса Зона A/B",
+          "owner": "Team",
+          "status": "todo",
+          "notes": ""
+        },
+        {
+          "id": "M2-T3",
+          "title_en": "Mount 4G Router and 5-port Ethernet Switch",
+          "title_ru": "Установить 4G-роутер и 5-портовый Ethernet-коммутатор",
+          "owner": "Team",
+          "status": "todo",
+          "notes": ""
+        },
+        {
+          "id": "M2-T4",
+          "title_en": "Route LAN cables to Pis and Arduino Ethernet Shields",
+          "title_ru": "Проложить LAN-кабели к Raspberry Pi и Ethernet-шилдам Arduino",
+          "owner": "Team",
+          "status": "todo",
+          "notes": ""
+        },
+        {
+          "id": "M2-T5",
+          "title_en": "Migrate verified bench electronics into buoy dry boxes",
+          "title_ru": "Перенести проверенную стендовую электронику в сухие отсеки буя",
+          "owner": "Embedded",
+          "status": "todo",
+          "notes": ""
+        },
+        {
+          "id": "M2-T6",
+          "title_en": "Terminate internal wiring and Weipu IP68 connectors",
+          "title_ru": "Обжать внутреннюю проводку и герметичные разъёмы Weipu IP68",
+          "owner": "Team",
+          "status": "todo",
+          "notes": ""
+        }
+      ]
+    },
+    {
+      "id": "M3",
+      "title_en": "UV & Submerged Sensors",
+      "title_ru": "УФ-модуль и подводные датчики",
+      "description_en": "Everbeam 50W UV mount, submerged sensor cage with biofouling protection.",
+      "description_ru": "Установка УФ-модуля Everbeam 50W и подводной клетки датчиков с защитой от биообрастания.",
+      "owner": "Team",
+      "tasks": [
+        {
+          "id": "M3-T1",
+          "title_en": "Mount Everbeam 50W UV light with angle control",
+          "title_ru": "Установить УФ-лампу Everbeam 50W с регулировкой угла",
+          "owner": "Team",
+          "status": "todo",
+          "notes": ""
+        },
+        {
+          "id": "M3-T2",
+          "title_en": "Complete hydro-isolation of UV housing",
+          "title_ru": "Выполнить полную гидроизоляцию корпуса УФ-модуля",
+          "owner": "Team",
+          "status": "todo",
+          "notes": ""
+        },
+        {
+          "id": "M3-T3",
+          "title_en": "Fabricate protective cage for Atlas EC + Optical DO sensors",
+          "title_ru": "Изготовить защитную клетку для датчиков Atlas EC и оптического DO",
+          "owner": "Team",
+          "status": "todo",
+          "notes": ""
+        },
+        {
+          "id": "M3-T4",
+          "title_en": "Integrate copper-mesh biofouling protection",
+          "title_ru": "Установить медную сетку для защиты от биообрастания",
+          "owner": "Team",
+          "status": "todo",
+          "notes": ""
+        }
+      ]
+    },
+    {
+      "id": "M4",
+      "title_en": "Dry-Run Validation (Outside)",
+      "title_ru": "Испытания на воздухе",
+      "description_en": "48h outdoor soak test: solar curve, thermal stability, 4G/LoRa link reliability.",
+      "description_ru": "48-часовой тест на открытом воздухе: кривая заряда, тепловая стабильность, надёжность 4G/LoRa.",
+      "owner": "Team",
+      "tasks": [
+        {
+          "id": "M4-T1",
+          "title_en": "Leave full system outside for 48h — monitor solar charging curve",
+          "title_ru": "Оставить систему на 48 часов на воздухе — контроль кривой заряда",
+          "owner": "Team",
+          "status": "todo",
+          "notes": ""
+        },
+        {
+          "id": "M4-T2",
+          "title_en": "Verify thermal stability under sun + night cycle",
+          "title_ru": "Проверить тепловую стабильность в цикле солнце/ночь",
+          "owner": "Team",
+          "status": "todo",
+          "notes": ""
+        },
+        {
+          "id": "M4-T3",
+          "title_en": "Verify 4G/LoRa link reliability in outdoor environment",
+          "title_ru": "Проверить надёжность 4G/LoRa на открытом воздухе",
+          "owner": "Network",
+          "status": "todo",
+          "notes": ""
+        }
+      ]
+    },
+    {
+      "id": "M5",
+      "title_en": "Port Swap & Launch",
+      "title_ru": "Замена рамы в порту и запуск",
+      "description_en": "Transport HDG frame to port, swap with non-HDG frame, start mission.",
+      "description_ru": "Доставка оцинкованной рамы в порт, замена старой рамы, старт миссии.",
+      "owner": "Team",
+      "tasks": [
+        {
+          "id": "M5-T1",
+          "title_en": "Transport completed HDG frame to Port of Sagres",
+          "title_ru": "Доставить готовую оцинкованную раму в порт Сагреш",
+          "owner": "Team",
+          "status": "todo",
+          "notes": ""
+        },
+        {
+          "id": "M5-T2",
+          "title_en": "Swap non-HDG frame with mission-ready HDG frame",
+          "title_ru": "Заменить старую раму на готовую оцинкованную",
+          "owner": "Team",
+          "status": "todo",
+          "notes": ""
+        },
+        {
+          "id": "M5-T3",
+          "title_en": "Final end-to-end data check at oceanpulse.pt",
+          "title_ru": "Финальная сквозная проверка передачи данных на oceanpulse.pt",
+          "owner": "Network",
+          "status": "todo",
+          "notes": ""
+        }
+      ]
+    }
+  ],
+  "schematic": {
+    "mermaid_source": "flowchart TB\n    %% LEVEL 1: TOP PLATFORM (EXTERIOR)\n    subgraph LevelTop[\"LEVEL 1: TOP PLATFORM (EXTERIOR)\"]\n        Solar[\"2x 50W Solar Panels\"]\n        Ant4G_1[\"4G Antenna 1\"]\n        Ant4G_2[\"4G Antenna 2\"]\n        AntLoRa_A[\"LoRa Antenna A\"]\n        AntLoRa_B[\"LoRa Antenna B\"]\n        UV[\"Everbeam 50W UV Light\"]\n        Cam[\"IMX378 Vision Camera\"]\n    end\n\n    %% LEVEL 2: BUOY FRAME (INTERNAL DRY BOXES)\n    subgraph LevelInternal[\"LEVEL 2: INTERNAL TOWER (DRY BOXES)\"]\n        subgraph ZoneC[\"Zone C: Power Box\"]\n            MPPT[\"Victron MPPT 75/15\"]\n            Batt[\"50Ah LiFePO4\"]\n            FuseBlock[\"6-Way Marine Fuse Block\"]\n            RelayA_In[\"Relay A: 12V DC Switch\"]\n        end\n        subgraph Networking[\"Networking Stack\"]\n            Router4G[\"4G Industrial Router\"]\n            Switch[\"5-Port Ethernet Switch\"]\n        end\n        subgraph ZoneA[\"Zone A: Mission Box\"]\n            Pi5[\"Raspberry Pi 5\"]\n            ArdA[\"Arduino Mega Main\"]\n            EthA[\"W5500 Eth Shield\"]\n            RS485[\"USB-to-RS485\"]\n            subgraph UV_Logic[\"UV Timer Cascade\"]\n                T1[\"Timer 1\"]\n                T2[\"Timer 2\"]\n                T3[\"Timer 3\"]\n                RelayB[\"Relay B (AC)\"]\n                RelayS[\"Relay Safety\"]\n            end\n            Inverter[\"300W Inverter\"]\n        end\n        subgraph ZoneB[\"Zone B: Health Box\"]\n            Pi3[\"Raspberry Pi 3 B+\"]\n            ArdB[\"Arduino Mega Health\"]\n            EthB[\"W5500 Eth Shield\"]\n        end\n    end\n\n    %% LEVEL 3: SUBMERGED CAGE (IN WATER)\n    subgraph LevelWater[\"LEVEL 3: SUBMERGED CAGE (WATER)\"]\n        EZO_Probe[\"Atlas Industrial EC\"]\n        DO_Sensor[\"Optical DO Sensor\"]\n    end\n\n    %% CONNECTIONS\n    Solar -- \"2 Wires (P1)\" --> MPPT\n    Ant4G_1 & Ant4G_2 -- \"2 Coax (P2)\" --> Router4G\n    AntLoRa_A -- \"1 Coax (P3)\" --> Pi5\n    AntLoRa_B -- \"1 Coax (P4)\" --> Pi3\n    RelayS -- \"3 Wires AC (P5)\" --> UV\n    Pi5 -- \"1 USB (P6)\" --> Cam\n    FuseBlock -- \"2 Wires\" --> ZoneA\n    FuseBlock -- \"2 Wires\" --> ZoneB\n    FuseBlock -- \"2 Wires\" --> Networking\n    RelayA_In -- \"2 Wires\" --> Inverter\n    Switch -- \"RJ45\" --> Pi5\n    Switch -- \"RJ45\" --> Pi3\n    Switch -- \"RJ45\" --> EthA\n    Switch -- \"RJ45\" --> EthB\n    Router4G -- \"RJ45 (8W)\" --> Switch\n    ArdA -- \"4 Wires (P7)\" --> EZO_Probe\n    RS485 -- \"4 Wires (P8)\" --> DO_Sensor\n    ArdA -- \"2 Wires\" --> UV_Logic\n    ArdA -- \"1 Wire\" --> ResetB[\"Reset B\"]\n    ArdB -- \"1 Wire\" --> ResetA[\"Reset A\"]\n\n    style Solar fill:#4a90e2,color:#fff\n    style UV fill:#4a90e2,color:#fff\n    style LevelWater fill:#1b3a5c,color:#fff\n    style RelayS fill:#d9534f,color:#fff\n    style Inverter fill:#e8a33d,color:#000\n    style T1 fill:#4caf50,color:#fff\n    style T2 fill:#4caf50,color:#fff\n    style T3 fill:#4caf50,color:#fff"
+  },
+  "shopping_list": [
+    {
+      "id": "S-001",
+      "item_en": "Hot-dip galvanized frame (mission-ready, for swap)",
+      "item_ru": "Оцинкованная рама (готовая к миссии, для замены)",
+      "quantity": 1,
+      "unit_cost_eur": null,
+      "vendor_url": "",
+      "status": "needed",
+      "linked_task_id": "M5-T1",
+      "notes": ""
+    },
+    {
+      "id": "S-002",
+      "item_en": "Sikasil Marine silicone (high-temp, pure silicone)",
+      "item_ru": "Морской силикон Sikasil Marine (высокотемпературный, чистый силикон)",
+      "quantity": 2,
+      "unit_cost_eur": null,
+      "vendor_url": "",
+      "status": "needed",
+      "linked_task_id": "M1-T3",
+      "notes": "Using the highest-temperature Sika variant. Rated -50 to +180 °C continuous. No frame temperature measurement needed — silicone isn't being painted over, so the higher temp headroom is free and removes guesswork."
+    },
+    {
+      "id": "S-003",
+      "item_en": "Weipu IP68 connectors (SP13 + SP21 assortment)",
+      "item_ru": "Разъёмы Weipu IP68 (комплект SP13 + SP21)",
+      "quantity": 1,
+      "unit_cost_eur": null,
+      "vendor_url": "",
+      "status": "needed",
+      "linked_task_id": "M2-T6",
+      "notes": ""
+    },
+    {
+      "id": "S-004",
+      "item_en": "Copper mesh (biofouling protection)",
+      "item_ru": "Медная сетка (защита от биообрастания)",
+      "quantity": 1,
+      "unit_cost_eur": null,
+      "vendor_url": "",
+      "status": "needed",
+      "linked_task_id": "M3-T4",
+      "notes": ""
+    },
+    {
+      "id": "S-005",
+      "item_en": "Steel angle 30×30mm, 4m length",
+      "item_ru": "Уголок 30×30 4м",
+      "quantity": 1,
+      "unit_cost_eur": 80,
+      "vendor_url": "",
+      "status": "needed",
+      "linked_task_id": "M1-T1",
+      "notes": "from Victor"
+    },
+    {
+      "id": "S-006",
+      "item_en": "Steel flat bar 2×20mm, 6m length",
+      "item_ru": "Пластина 2×20 6м",
+      "quantity": 1,
+      "unit_cost_eur": 72,
+      "vendor_url": "",
+      "status": "needed",
+      "linked_task_id": "M1-T1",
+      "notes": "from Victor"
+    },
+    {
+      "id": "S-007",
+      "item_en": "Plastic board (HDPE)",
+      "item_ru": "Плита пластиковая",
+      "quantity": 1,
+      "unit_cost_eur": null,
+      "vendor_url": "",
+      "status": "needed",
+      "linked_task_id": "M2-T1",
+      "notes": "from Victor — price TBC"
+    },
+    {
+      "id": "S-008",
+      "item_en": "Sealant",
+      "item_ru": "Герметик",
+      "quantity": 1,
+      "unit_cost_eur": null,
+      "vendor_url": "",
+      "status": "needed",
+      "linked_task_id": "M1-T3",
+      "notes": "from Victor — price TBC"
+    },
+    {
+      "id": "S-009",
+      "item_en": "Bolts (assorted)",
+      "item_ru": "Болты",
+      "quantity": 1,
+      "unit_cost_eur": null,
+      "vendor_url": "",
+      "status": "needed",
+      "linked_task_id": "M1-T1",
+      "notes": "from Victor — price TBC"
+    },
+    {
+      "id": "S-010",
+      "item_en": "Corner brackets",
+      "item_ru": "Уголки",
+      "quantity": 1,
+      "unit_cost_eur": null,
+      "vendor_url": "",
+      "status": "needed",
+      "linked_task_id": "M1-T1",
+      "notes": "from Victor — price TBC"
+    },
+    {
+      "id": "S-011",
+      "item_en": "Frame welding (service)",
+      "item_ru": "Сварка рамки",
+      "quantity": 1,
+      "unit_cost_eur": 40,
+      "vendor_url": "",
+      "status": "needed",
+      "linked_task_id": "M1-T1",
+      "notes": "from Victor — labor cost"
+    }
+  ],
+  "ui_strings": {
+    "app.title": {
+      "en": "OceanPulse — Deployment Panel",
+      "ru": "OceanPulse — Панель развёртывания"
+    },
+    "app.badge": {
+      "en": "INTERNAL",
+      "ru": "ВНУТРЕННИЙ"
+    },
+    "tab.roadmap": {
+      "en": "Roadmap",
+      "ru": "Дорожная карта"
+    },
+    "tab.schematic": {
+      "en": "Schematic",
+      "ru": "Схема"
+    },
+    "tab.shopping": {
+      "en": "Shopping List",
+      "ru": "Список закупок"
+    },
+    "roadmap.title": {
+      "en": "Deployment Roadmap v3.0",
+      "ru": "Дорожная карта развёртывания v3.0"
+    },
+    "roadmap.sub": {
+      "en": "Top-to-Bottom Assembly · HDG Frame Swap Strategy",
+      "ru": "Сборка сверху вниз · Замена оцинкованной рамы"
+    },
+    "schem.title": {
+      "en": "System Wiring Schematic",
+      "ru": "Схема проводки системы"
+    },
+    "schem.hint": {
+      "en": "Node labels are technical identifiers (not translated). Click \"Edit source\" to modify.",
+      "ru": "Метки узлов — технические идентификаторы (не переводятся). Нажмите «Изменить источник» для редактирования."
+    },
+    "shop.title": {
+      "en": "Shopping List",
+      "ru": "Список закупок"
+    },
+    "shop.filter_task": {
+      "en": "Filter by task:",
+      "ru": "Фильтр по задаче:"
+    },
+    "shop.filter_status": {
+      "en": "Status:",
+      "ru": "Статус:"
+    },
+    "shop.col_item": {
+      "en": "Item",
+      "ru": "Наименование"
+    },
+    "shop.col_qty": {
+      "en": "Qty",
+      "ru": "Кол-во"
+    },
+    "shop.col_cost": {
+      "en": "€",
+      "ru": "€"
+    },
+    "shop.col_vendor": {
+      "en": "Vendor",
+      "ru": "Поставщик"
+    },
+    "shop.col_linked": {
+      "en": "Linked Task",
+      "ru": "Связь с задачей"
+    },
+    "shop.col_status": {
+      "en": "Status",
+      "ru": "Статус"
+    },
+    "shop.col_actions": {
+      "en": "",
+      "ru": ""
+    },
+    "btn.add_milestone": {
+      "en": "+ Milestone",
+      "ru": "+ Этап"
+    },
+    "btn.add_task": {
+      "en": "+ Task",
+      "ru": "+ Задача"
+    },
+    "btn.add_item": {
+      "en": "+ Item",
+      "ru": "+ Позиция"
+    },
+    "btn.edit_source": {
+      "en": "✎ Edit source",
+      "ru": "✎ Изменить источник"
+    },
+    "btn.save": {
+      "en": "Save",
+      "ru": "Сохранить"
+    },
+    "btn.cancel": {
+      "en": "Cancel",
+      "ru": "Отмена"
+    },
+    "btn.delete": {
+      "en": "Delete",
+      "ru": "Удалить"
+    },
+    "btn.logout": {
+      "en": "Logout",
+      "ru": "Выход"
+    },
+    "btn.download": {
+      "en": "⬇ JSON",
+      "ru": "⬇ JSON"
+    },
+    "status.todo": {
+      "en": "todo",
+      "ru": "к выполнению"
+    },
+    "status.in_progress": {
+      "en": "in progress",
+      "ru": "в работе"
+    },
+    "status.done": {
+      "en": "done",
+      "ru": "выполнено"
+    },
+    "status.blocked": {
+      "en": "blocked",
+      "ru": "заблокировано"
+    },
+    "status.needed": {
+      "en": "needed",
+      "ru": "нужно"
+    },
+    "status.ordered": {
+      "en": "ordered",
+      "ru": "заказано"
+    },
+    "status.in_hand": {
+      "en": "in hand",
+      "ru": "в наличии"
+    },
+    "status.installed": {
+      "en": "installed",
+      "ru": "установлено"
+    },
+    "label.owner": {
+      "en": "Owner",
+      "ru": "Исполнитель"
+    },
+    "label.status": {
+      "en": "Status",
+      "ru": "Статус"
+    },
+    "label.notes": {
+      "en": "Notes",
+      "ru": "Заметки"
+    },
+    "label.title": {
+      "en": "Title",
+      "ru": "Название"
+    },
+    "label.title_en": {
+      "en": "Title (English)",
+      "ru": "Название (English)"
+    },
+    "label.title_ru": {
+      "en": "Title (Russian)",
+      "ru": "Название (Русский)"
+    },
+    "label.item_en": {
+      "en": "Item (English)",
+      "ru": "Позиция (English)"
+    },
+    "label.item_ru": {
+      "en": "Item (Russian)",
+      "ru": "Позиция (Русский)"
+    },
+    "label.qty": {
+      "en": "Quantity",
+      "ru": "Количество"
+    },
+    "label.cost": {
+      "en": "Unit cost (€)",
+      "ru": "Цена за ед. (€)"
+    },
+    "label.vendor": {
+      "en": "Vendor URL",
+      "ru": "Ссылка поставщика"
+    },
+    "label.linked": {
+      "en": "Linked task",
+      "ru": "Связанная задача"
+    },
+    "label.description": {
+      "en": "Description",
+      "ru": "Описание"
+    },
+    "toast.saved": {
+      "en": "Saved",
+      "ru": "Сохранено"
+    },
+    "toast.error": {
+      "en": "Save failed",
+      "ru": "Ошибка сохранения"
+    },
+    "progress.tasks": {
+      "en": "tasks complete",
+      "ru": "задач выполнено"
+    },
+    "confirm.delete": {
+      "en": "Delete this item?",
+      "ru": "Удалить эту запись?"
+    },
+    "btn.history": {
+      "en": "📜 History",
+      "ru": "📜 История"
+    },
+    "btn.close": {
+      "en": "Close",
+      "ru": "Закрыть"
+    }
+  }
+}

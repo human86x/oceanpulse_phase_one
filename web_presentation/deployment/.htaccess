@@ -1,0 +1,13 @@
+# SPEC-032 Roadmap Panel
+Options -Indexes
+DirectoryIndex index.php
+
+# Block config.php from being fetched directly as source
+<Files "config.php">
+    Require all denied
+</Files>
+
+# Deny dotfile access
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>

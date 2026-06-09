@@ -1,0 +1,51 @@
+graph LR
+    %% ==========================================
+    %% 1. ARDUINO CONTROL LAYER
+    %% ==========================================
+    subgraph ArduinoControl[Control Layer]
+        ArdA[Arduino Mega Main]
+        ArdA -- Pin 3: TRIG --> Relay_Master[Relay: Master Trigger]
+        ArdA -- Pin 4: SAFE --> Relay_Safety[Relay: Safety Interlock]
+    end
+
+    %% ==========================================
+    %% 2. 12V TRIGGER & TIMER CASCADE
+    %% ==========================================
+    subgraph TimerCascade[12V Timer Cascade]
+        Relay_Master -- 12V Power --> T1[Timer 1: 20s Duration]
+        Relay_Master -- 12V Power --> T2[Timer 2: 10s Delay]
+        
+        T1 -- 12V Out --> RelayA[Relay A: Inverter 12V Input]
+        T2 -- After 10s --> T3[Timer 3: 4s Pulse]
+        T3 -- 12V Out --> RelayB[Relay B: UV 220V Output]
+    end
+
+    %% ==========================================
+    %% 3. POWER PATHS (DC & AC)
+    %% ==========================================
+    subgraph PowerFlow[Electrical Path]
+        12V_Batt((12V Battery)) -- High Current --> RelayA
+        RelayA --> Inverter[300W Inverter]
+        
+        Inverter -- 220V AC --> RelayB
+        RelayB -- 220V AC --> Relay_Safety
+        Relay_Safety -- 220V AC --> UV[Everbeam 50W UV Light]
+    end
+
+    %% ==========================================
+    %% 4. SAFETY INPUTS
+    %% ==========================================
+    subgraph SafetySensors[Sensors]
+        PIR[PIR Motion] -- Pin 22 --> ArdA
+        Ultra[Ultrasonic] -- Pin 5/6 --> ArdA
+    end
+
+    %% Styles
+    style RelayA fill:#f96,stroke:#333
+    style RelayB fill:#f96,stroke:#333
+    style Relay_Safety fill:#f33,stroke:#fff,stroke-width:2px
+    style T1 fill:#dfd
+    style T2 fill:#dfd
+    style T3 fill:#dfd
+    style 12V_Batt fill:#ff9
+    style Inverter fill:#ff9

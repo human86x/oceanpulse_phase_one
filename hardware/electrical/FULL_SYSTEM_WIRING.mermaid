@@ -1,0 +1,86 @@
+graph TD
+    %% ==========================================
+    %% ZONE C: POWER CORE (MAUSER BOX)
+    %% ==========================================
+    subgraph ZoneC[Zone C: Power Core]
+        Solar[2x 50W Solar Panels] -- Weipu SP21 --> MPPT[Victron MPPT 75/15]
+        Batt[50Ah LiFePO4] <--> MPPT
+        MPPT --> FuseBlock[6-Way Marine Fuse Block]
+        
+        FuseBlock -- F1: 5A --> Bus12V_A[12V Main Bus A]
+        FuseBlock -- F2: 3A --> Bus12V_B[12V Main Bus B]
+        FuseBlock -- F3: 2A --> Bus12V_Sens[12V Sensor/LoRa Bus]
+        FuseBlock -- F4: 30A --> RelayA_In[Relay A: 12V DC Switch]
+        FuseBlock -- F5: 2A --> Bus12V_DO[12V Optical DO Power]
+    end
+
+    %% ==========================================
+    %% ZONE A: MISSION CIRCUIT (DRY BOX 1)
+    %% ==========================================
+    subgraph ZoneA[Zone A: Mission Control]
+        Bus12V_A --> BuckA[12V->5V Buck 5A]
+        BuckA --> Pi5[Raspberry Pi 5]
+        BuckA --> ArdA[Arduino Mega Main]
+
+        %% UV HARDWARE TIMER CASCADE
+        ArdA -- Pin 3: TRIG --> RelayM[Relay: Master Trigger]
+        ArdA -- Pin 4: SAFE --> RelayS[Relay: Safety Interlock]
+        
+        RelayM -- 12V Start --> T1[Timer 1: 20s Inverter]
+        RelayM -- 12V Start --> T2[Timer 2: 10s Delay]
+        T1 -- 12V Out --> RelayA_In
+        T2 -- After 10s --> T3[Timer 3: 4s Pulse]
+        T3 -- 12V Out --> RelayB_Out[Relay B: 220V AC Switch]
+
+        %% 220V Path
+        RelayA_In --> Inverter[300W GreenCell Inverter]
+        Inverter -- 220V AC --> RelayB_Out
+        RelayB_Out -- 220V AC --> RelayS
+        RelayS -- 220V AC --> UV[Everbeam 50W UV Light]
+
+        %% Sensors (System A)
+        ArdA -- Pin 22 --> PIR[PIR Motion]
+        ArdA -- Pin 5/6 --> Ultra[Ultrasonic]
+        ArdA -- I2C 5V --> EZO[Atlas EZO-EC]
+        ArdA -- I2C 5V --> LLS[Logic Level Shifter]
+        LLS -- I2C 3.3V --> Bar30[Bar30 Depth]
+        ArdA -- Serial2 --> MAX485[RS485 Transceiver]
+        MAX485 -- RS485 --> DO[Optical DO Sensor]
+        Bus12V_DO --> DO
+    end
+
+    %% ==========================================
+    %% ZONE B: HEALTH CIRCUIT (DRY BOX 2)
+    %% ==========================================
+    subgraph ZoneB[Zone B: Health & Router]
+        Bus12V_B --> BuckB[12V->5V Buck 3A]
+        BuckB --> Pi3[Raspberry Pi 3 B+]
+        BuckB --> ArdB[Arduino Mega Health]
+        
+        ArdB -- I2C --> SHT3x[Internal Temp/Hum]
+        ArdB -- Pin A1 --> BattMonB[Voltage Divider]
+        Bus12V_B --> BattMonB
+        
+        %% Victron Monitoring
+        MPPT -- VE.Direct-USB --> Pi3
+    end
+
+    %% ==========================================
+    %% COMMS & CROSS-RESET
+    %% ==========================================
+    Pi5 -- USB --> LoRaA[LoRa-E5 Mini A]
+    Pi3 -- USB --> LoRaB[LoRa-E5 Mini B]
+    
+    ArdA -- Pin 2 --> ResetB[Relay: Restart Sys B]
+    ArdB -- Pin 2 --> ResetA[Relay: Restart Sys A]
+
+    %% Styles
+    style RelayA_In fill:#f96,stroke:#333
+    style RelayB_Out fill:#f96,stroke:#333
+    style RelayS fill:#f33,stroke:#fff
+    style Inverter fill:#ff9,stroke:#333
+    style T1 fill:#dfd
+    style T2 fill:#dfd
+    style T3 fill:#dfd
+    style Solar fill:#bbf
+    style UV fill:#bbf

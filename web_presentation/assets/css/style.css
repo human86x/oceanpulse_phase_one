@@ -1,0 +1,72 @@
+:root {
+    --ocean-dark: #004e89;
+    --ocean-blue: #005A9C;
+    --ocean-orange: #FF7F00;
+    --ocean-light: #f0f8ff;
+}
+
+body {
+    background-color: var(--ocean-light);
+    font-family: 'Roboto', sans-serif;
+}
+
+.bg-ocean-dark {
+    background-color: var(--ocean-dark) !important;
+}
+
+.bg-ocean-orange {
+    background-color: var(--ocean-orange) !important;
+}
+
+.text-ocean-orange {
+    color: var(--ocean-orange) !important;
+}
+
+.hero-section {
+    background: linear-gradient(135deg, var(--ocean-dark) 0%, #002244 100%);
+    padding: 3rem 0;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.nav-tabs .nav-link {
+    color: var(--ocean-dark);
+    font-weight: 500;
+}
+
+.nav-tabs .nav-link.active {
+    color: var(--ocean-orange);
+    border-top: 3px solid var(--ocean-orange);
+}
+
+.info-panel {
+    border: none;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    position: sticky;
+    top: 80px;
+}
+
+.mermaid-container {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid #eee;
+    overflow-x: auto;
+}
+
+/* Custom Scrollbar for diagram */
+.mermaid-container::-webkit-scrollbar {
+    height: 8px;
+}
+.mermaid-container::-webkit-scrollbar-track {
+    background: #f1f1f1; 
+}
+.mermaid-container::-webkit-scrollbar-thumb {
+    background: #ccc; 
+    border-radius: 4px;
+}
+
+.badge {
+    font-size: 0.9rem;
+    padding: 0.5em 0.8em;
+}

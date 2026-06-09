@@ -1,0 +1,15 @@
+[Unit]
+Description=OceanPulse Oil Detection Vision Service
+After=network.target
+
+[Service]
+Type=simple
+User=lab
+WorkingDirectory=/home/lab/oceanpulse/vision
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/usr/bin/python3 vision_service.py
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

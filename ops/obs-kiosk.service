@@ -1,0 +1,15 @@
+[Unit]
+Description=OceanPulse Headless Kiosk
+After=network.target obs-center.service
+Wants=obs-center.service
+
+[Service]
+User=lab
+Type=simple
+Environment=XDG_RUNTIME_DIR=/run/user/1000
+ExecStart=/home/lab/oceanpulse/ops/launch_kiosk.sh
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

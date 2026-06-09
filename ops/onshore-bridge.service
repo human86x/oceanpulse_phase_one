@@ -1,0 +1,16 @@
+[Unit]
+Description=OceanPulse Onshore Bridge (LoRa Gateway)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=node1
+WorkingDirectory=/home/node1/oceanpulse/bridge
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/usr/bin/python3 onshore_bridge.py --port /dev/op-lora --api https://lab-center.tailcbe118.ts.net/api/telemetry --public-api https://vps-1f52b6a8.vps.ovh.net/api/telemetry
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

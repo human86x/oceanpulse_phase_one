@@ -1,0 +1,97 @@
+flowchart TB
+    %% ==========================================
+    %% LEVEL 1: TOP PLATFORM (EXTERIOR)
+    %% ==========================================
+    subgraph LevelTop["LEVEL 1: TOP PLATFORM (EXTERIOR)"]
+        Solar["2x 50W Solar Panels"]
+        Ant4G_1["4G Antenna 1"]
+        Ant4G_2["4G Antenna 2"]
+        AntLoRa_A["LoRa Antenna A"]
+        AntLoRa_B["LoRa Antenna B"]
+        UV["Everbeam 50W UV Light"]
+        Cam["IMX378 Vision Camera"]
+    end
+
+    %% ==========================================
+    %% LEVEL 2: BUOY FRAME (INTERNAL DRY BOXES)
+    %% ==========================================
+    subgraph LevelInternal["LEVEL 2: INTERNAL TOWER (DRY BOXES)"]
+        
+        subgraph ZoneC["Zone C: Power Box"]
+            MPPT["Victron MPPT 75/15"]
+            Batt["50Ah LiFePO4"]
+            FuseBlock["6-Way Marine Fuse Block"]
+            RelayA_In["Relay A: 12V DC Switch"]
+        end
+
+        subgraph Networking["Networking Stack"]
+            Router4G["4G Industrial Router"]
+            Switch["5-Port Ethernet Switch"]
+        end
+
+        subgraph ZoneA["Zone A: Mission Box"]
+            Pi5["Raspberry Pi 5"]
+            ArdA["Arduino Mega Main"]
+            EthA["W5500 Eth Shield"]
+            RS485["USB-to-RS485"]
+            
+            subgraph UV_Logic["UV Timer Cascade"]
+                T1["Timer 1"]
+                T2["Timer 2"]
+                T3["Timer 3"]
+                RelayB["Relay B (AC)"]
+                RelayS["Relay Safety"]
+            end
+            
+            Inverter["300W Inverter"]
+        end
+
+        subgraph ZoneB["Zone B: Health Box"]
+            Pi3["Raspberry Pi 3 B+"]
+            ArdB["Arduino Mega Health"]
+            EthB["W5500 Eth Shield"]
+        end
+    end
+
+    %% ==========================================
+    %% LEVEL 3: SUBMERGED CAGE (IN WATER)
+    %% ==========================================
+    subgraph LevelWater["LEVEL 3: SUBMERGED CAGE (WATER)"]
+        EZO_Probe["Atlas Industrial EC"]
+        DO_Sensor["Optical DO Sensor"]
+    end
+
+    %% ==========================================
+    %% CONNECTIONS WITH WIRE COUNTS
+    %% ==========================================
+
+    %% External Top to Internal
+    Solar -- "2 Wires (P1)" --> MPPT
+    Ant4G_1 & Ant4G_2 -- "2 Coax (P2)" --> Router4G
+    AntLoRa_A -- "1 Coax (P3)" --> Pi5
+    AntLoRa_B -- "1 Coax (P4)" --> Pi3
+    RelayS -- "3 Wires AC (P5)" --> UV
+    Pi5 -- "1 USB Cable (P6)" --> Cam
+
+    %% Internal Box to Box
+    FuseBlock -- "2 Wires" --> ZoneA & ZoneB & Networking
+    RelayA_In -- "2 Wires" --> Inverter
+    Switch -- "1 RJ45 (8 Wires)" --> Pi5 & Pi3 & EthA & EthB
+    Router4G -- "1 RJ45 (8 Wires)" --> Switch
+
+    %% Internal to Submerged Water
+    ArdA -- "4 Wires (P7)" --> EZO_Probe
+    RS485 -- "4 Wires (P8)" --> DO_Sensor
+
+    %% Internal Logic
+    ArdA -- "2 Wires" --> UV_Logic
+    ArdA -- "1 Wire" --> ResetB["Reset B"]
+    ArdB -- "1 Wire" --> ResetA["Reset A"]
+
+    %% Styles
+    style Solar fill:#bbf
+    style UV fill:#bbf
+    style LevelWater fill:#e1f5fe
+    style RelayS fill:#f33,stroke:#fff
+    style Inverter fill:#ff9
+    style Timer1,Timer2,Timer3 fill:#dfd

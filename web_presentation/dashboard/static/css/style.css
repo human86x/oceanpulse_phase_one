@@ -1,0 +1,89 @@
+:root {
+    --op-bg: #0b0e14;
+    --op-card: #151922;
+    --op-text: #e0e0e0;
+    --op-accent: #00ff41; /* Terminal Green */
+    --op-alert: #ff3333;
+}
+
+body.dark-theme {
+    background-color: var(--op-bg);
+    color: var(--op-text);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.navbar {
+    box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+}
+
+.card {
+    background-color: var(--op-card);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+
+.card-header {
+    background-color: rgba(0,0,0,0.2);
+    border-bottom: 1px solid #333;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.display-4 {
+    text-shadow: 0 0 10px rgba(0, 255, 65, 0.3);
+}
+
+.font-monospace {
+    font-family: 'Courier New', Courier, monospace !important;
+    text-shadow: 0 0 5px rgba(0, 255, 65, 0.4);
+}
+
+.glow-green {
+    box-shadow: 0 0 8px rgba(0, 255, 65, 0.6);
+    text-shadow: 0 0 5px rgba(0, 255, 65, 0.8);
+}
+
+.glow-blue {
+    box-shadow: 0 0 8px rgba(13, 202, 240, 0.6);
+    text-shadow: 0 0 5px rgba(13, 202, 240, 0.8);
+}
+
+#console-log {
+    border-left: 2px solid var(--op-accent);
+    padding-left: 10px;
+}
+
+/* VISION TAB CUSTOM STYLES */
+#vision-log::-webkit-scrollbar {
+    width: 6px;
+}
+
+#vision-log::-webkit-scrollbar-track {
+    background: #000;
+}
+
+#vision-log::-webkit-scrollbar-thumb {
+    background: #444;
+    border-radius: 3px;
+}
+
+#vision-log::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+.italic {
+    font-style: italic;
+}
+
+.tiny {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+#vision-feed {
+    transition: opacity 0.3s ease-in-out;
+}
+
+.list-group-item.bg-dark.text-danger:hover {
+    background-color: #1a0505 !important;
+}

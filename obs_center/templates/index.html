@@ -1,0 +1,1383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OceanPulse OpsCenter</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Chart.js time-scale adapter (for Power history time-series) -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <!-- marked.js: client-side markdown renderer for the admin Manual tab -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- Leaflet: deployment-location map on the Community tab -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+</head>
+<body class="dark-theme">
+
+<!-- Access Gate -->
+<div id="access-gate" class="gate-overlay">
+    <div class="gate-box">
+        <div class="gate-logo"><i class="bi bi-water"></i></div>
+        <h2 class="text-success fw-bold mb-0">OCEANPULSE</h2>
+        <p class="text-muted small mb-4">Observation Center</p>
+
+        <div id="gate-buttons">
+            <button class="btn btn-outline-light btn-lg w-100 mb-3" onclick="gateGuest()">
+                <i class="bi bi-eye"></i> Enter as Guest
+            </button>
+            <button class="btn btn-outline-info btn-lg w-100" onclick="gateShowLogin()">
+                <i class="bi bi-shield-lock"></i> Admin
+            </button>
+        </div>
+
+        <div id="gate-login" style="display:none;">
+            <input type="text" id="gate-user" class="form-control bg-black text-white border-secondary mb-2" placeholder="Username" autocomplete="username">
+            <input type="password" id="gate-pass" class="form-control bg-black text-white border-secondary mb-2" placeholder="Password" autocomplete="current-password">
+            <div id="gate-error" class="text-danger small mb-2" style="display:none;">Invalid credentials</div>
+            <button class="btn btn-info w-100 mb-2" onclick="gateLogin()"><i class="bi bi-box-arrow-in-right"></i> Login</button>
+            <button class="btn btn-outline-secondary btn-sm w-100" onclick="gateBack()">Back</button>
+        </div>
+
+        <p class="text-muted mt-4 mb-0" style="font-size:0.7rem;">Port of Sagres, Portugal</p>
+    </div>
+</div>
+
+<nav class="navbar navbar-dark bg-black border-bottom border-secondary">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">
+            <span class="text-success fw-bold">OCEANPULSE</span> // OpsCenter
+        </a>
+        <div class="d-flex align-items-center">
+            <span class="badge bg-secondary me-2" id="conn-gate">GATEWAY: ---</span>
+            <span class="badge bg-danger me-2" id="conn-main">MAIN: OFFLINE</span>
+            <span class="badge bg-danger me-2" id="conn-health">HEALTH: OFFLINE</span>
+            <span class="badge bg-dark border border-secondary me-2" id="session-badge" style="display:none;">
+                <i class="bi bi-person"></i> <span id="session-user"></span>
+            </span>
+            <button class="btn btn-outline-info btn-sm" id="btn-login" style="display:none;" onclick="doLoginFromGuest()">
+                <i class="bi bi-box-arrow-in-right"></i> Login
+            </button>
+            <button class="btn btn-outline-danger btn-sm" id="btn-logout" style="display:none;" onclick="doLogout()">
+                <i class="bi bi-box-arrow-right"></i>
+            </button>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid mt-4">
+    <!-- TABS NAVIGATION -->
+    <ul class="nav nav-tabs border-secondary mb-4" id="opsTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active bg-dark text-success border-secondary" id="mission-tab" data-bs-toggle="tab" data-bs-target="#mission" type="button" role="tab" aria-controls="mission" aria-selected="true">MISSION CONTROL</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link bg-dark text-info border-secondary" id="lora-tab" data-bs-toggle="tab" data-bs-target="#lora" type="button" role="tab" aria-controls="lora" aria-selected="false">LORA DIAGNOSTICS</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link bg-dark text-primary border-secondary" id="gateway-tab" data-bs-toggle="tab" data-bs-target="#gateway" type="button" role="tab" aria-controls="gateway" aria-selected="false">GATEWAY</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link bg-dark text-warning border-secondary" id="vision-tab" data-bs-toggle="tab" data-bs-target="#vision" type="button" role="tab" aria-controls="vision" aria-selected="false">VISION / OIL DETECTION</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link bg-dark text-success border-secondary" id="power-tab" data-bs-toggle="tab" data-bs-target="#power" type="button" role="tab" aria-controls="power" aria-selected="false">POWER</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link bg-dark text-info border-secondary" id="community-tab" data-bs-toggle="tab" data-bs-target="#community" type="button" role="tab" aria-controls="community" aria-selected="false">COMMUNITY</button>
+        </li>
+        <li class="nav-item admin-only" role="presentation">
+            <button class="nav-link bg-dark text-danger border-secondary" id="activity-tab" data-bs-toggle="tab" data-bs-target="#activity" type="button" role="tab" aria-controls="activity" aria-selected="false">ACTIVITY LOG</button>
+        </li>
+        <li class="nav-item admin-only" role="presentation">
+            <button class="nav-link bg-dark text-info border-secondary" id="cal-tab" data-bs-toggle="tab" data-bs-target="#cal" type="button" role="tab" aria-controls="cal" aria-selected="false">CALIBRATION</button>
+        </li>
+        <li class="nav-item admin-only" role="presentation">
+            <button class="nav-link bg-dark text-warning border-secondary" id="debug-tab" data-bs-toggle="tab" data-bs-target="#debug" type="button" role="tab" aria-controls="debug" aria-selected="false">DEBUG</button>
+        </li>
+        <li class="nav-item admin-only" role="presentation">
+            <button class="nav-link bg-dark text-info border-secondary" id="manual-tab" data-bs-toggle="tab" data-bs-target="#manual" type="button" role="tab" aria-controls="manual" aria-selected="false">MANUAL</button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="opsTabsContent">
+        <!-- MISSION CONTROL TAB -->
+        <div class="tab-pane fade show active" id="mission" role="tabpanel" aria-labelledby="mission-tab">
+            <div class="text-end mb-2">
+                <span class="badge bg-info text-dark" title="Data on this tab arrives from buoy via LoRa radio (M:STATUS, H:STATUS, P:STATUS packets through the onshore gateway)">
+                    <i class="bi bi-broadcast"></i> Transport: LoRa
+                </span>
+            </div>
+
+            <!-- Heartbeat / LoRa link latency strip — Option A (by LoRa source) -->
+            <div class="row g-2 mb-3">
+                <div class="col-md-6">
+                    <div class="card bg-dark border-secondary">
+                        <div class="card-body py-2 px-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <small class="text-info text-uppercase fw-bold">MAIN LINK</small>
+                                <small class="font-monospace">
+                                    last <span id="hb-main-age" class="text-success">—</span>
+                                    · avg <span id="hb-main-avg" class="text-info">—</span>
+                                </small>
+                            </div>
+                            <canvas id="hb-main-canvas" height="42"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card bg-dark border-secondary">
+                        <div class="card-body py-2 px-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <small class="text-info text-uppercase fw-bold">HEALTH LINK <small class="text-muted">(H + P)</small></small>
+                                <small class="font-monospace">
+                                    last <span id="hb-health-age" class="text-success">—</span>
+                                    · avg <span id="hb-health-avg" class="text-info">—</span>
+                                </small>
+                            </div>
+                            <canvas id="hb-health-canvas" height="42"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <!-- SYSTEM A: MAIN MISSION -->
+                <div class="col-md-8">
+                    <div class="card bg-dark border-success mb-4">
+                        <div class="card-header border-success text-success fw-bold d-flex justify-content-between align-items-center">
+                            <span>SYSTEM A: MISSION STATUS</span>
+                            <div class="d-flex gap-2 align-items-center">
+                                <button class="btn btn-outline-warning btn-xs py-0 px-2 admin-only" style="font-size: 0.7rem;" onclick="confirmSoftReboot('main')">SOFT REBOOT MAIN</button>
+                                <button class="btn btn-outline-danger btn-xs py-0 px-2 admin-only" style="font-size: 0.7rem;" onclick="confirmRebootHealth()">HARD RESET HEALTH</button>
+                                <span class="badge bg-secondary">ID: MAIN-01</span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-3 border-end border-secondary">
+                                    <h5 class="text-muted text-uppercase small">Conductivity (EC)</h5>
+                                    <h1 class="display-5 fw-bold text-success font-monospace" id="val-ec">--.-</h1>
+                                    <small class="text-muted">μS/cm</small>
+                                </div>
+                                <div class="col-md-3 border-end border-secondary">
+                                    <h5 class="text-muted text-uppercase small">Dissolved O₂</h5>
+                                    <h1 class="display-5 fw-bold text-primary font-monospace" id="val-do">--.-</h1>
+                                    <small class="text-muted">mg/L</small>
+                                </div>
+                                <div class="col-md-3 border-end border-secondary">
+                                    <h5 class="text-muted text-uppercase small">Water Temp</h5>
+                                    <h1 class="display-5 fw-bold text-info font-monospace" id="val-wtemp">--.-</h1>
+                                    <small class="text-muted">°C (DO probe)</small>
+                                </div>
+                                <div class="col-md-3 text-end">
+                                    <h5 class="text-muted text-uppercase small">UV Lighting (Relay)</h5>
+                                    <span class="badge bg-secondary p-2 mb-2" id="val-relay">OFF</span>
+                                    <div class="d-grid gap-2">
+                                        <button class="btn btn-outline-success btn-sm admin-only" onclick="sendCommand('RELAY_ON')">
+                                            <i class="bi bi-lightbulb-fill"></i> UV ON
+                                        </button>
+                                        <button class="btn btn-outline-danger btn-sm admin-only" onclick="sendCommand('RELAY_OFF')">
+                                            <i class="bi bi-lightbulb-off"></i> UV OFF
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mt-4">
+                                <div class="col-md-4">
+                                    <small class="text-muted text-uppercase d-block mb-1">EC History</small>
+                                    <div class="border border-secondary bg-black" style="height: 220px; position: relative;">
+                                        <canvas id="ecChart"></canvas>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <small class="text-muted text-uppercase d-block mb-1">DO History</small>
+                                    <div class="border border-secondary bg-black" style="height: 220px; position: relative;">
+                                        <canvas id="doChart"></canvas>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <small class="text-muted text-uppercase d-block mb-1">Water Temp History</small>
+                                    <div class="border border-secondary bg-black" style="height: 220px; position: relative;">
+                                        <canvas id="wtempChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SYSTEM B: HEALTH & LOGS -->
+                <div class="col-md-4">
+                    <div class="card bg-dark border-secondary mb-4">
+                        <div class="card-header border-secondary text-info fw-bold d-flex justify-content-between align-items-center">
+                            <span>SYSTEM B: HEALTH</span>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-outline-warning btn-xs py-0 px-2 admin-only" style="font-size: 0.7rem;" onclick="confirmSoftReboot('health')">SOFT REBOOT HEALTH</button>
+                                <button class="btn btn-outline-danger btn-xs py-0 px-2 admin-only" style="font-size: 0.7rem;" onclick="confirmRebootMission()">HARD RESET MISSION</button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <ul class="list-group list-group-flush bg-dark">
+                                <li class="list-group-item bg-dark text-white border-secondary d-flex justify-content-between">
+                                    <span title="SHT3x I2C reference sensor (SDA=D20, SCL=D21)">Top Shelf</span>
+                                    <span class="fw-bold font-monospace"><span class="text-info" id="val-temp">--.-°C</span> / <span class="text-warning"><span class="text-muted small">RH</span> <span id="val-humid">--%</span></span></span>
+                                </li>
+                                <li class="list-group-item bg-dark text-white border-secondary d-flex justify-content-between">
+                                    <span title="DHT11 on pin 5">Relays & Inverter</span>
+                                    <span class="fw-bold font-monospace"><span class="text-info" id="val-dht3-t">--.-°C</span> / <span class="text-warning"><span class="text-muted small">RH</span> <span id="val-dht3-h">--%</span></span></span>
+                                </li>
+                                <li class="list-group-item bg-dark text-white border-secondary d-flex justify-content-between">
+                                    <span title="DHT11 on pin 4 (currently not responding — check wiring)">Lower Shelf</span>
+                                    <span class="fw-bold font-monospace"><span class="text-info" id="val-dht2-t">--.-°C</span> / <span class="text-warning"><span class="text-muted small">RH</span> <span id="val-dht2-h">--%</span></span></span>
+                                </li>
+                                <li class="list-group-item bg-dark text-white border-secondary d-flex justify-content-between">
+                                    <span title="DHT11 on pin 6 (battery temp)">Battery</span>
+                                    <span class="fw-bold font-monospace"><span class="text-info" id="val-dht4-t">--.-°C</span> / <span class="text-warning"><span class="text-muted small">RH</span> <span id="val-dht4-h">--%</span></span></span>
+                                </li>
+                                <li class="list-group-item bg-dark text-white border-secondary d-flex justify-content-between">
+                                    <span title="DHT11 on pin 3">Compute Box</span>
+                                    <span class="fw-bold font-monospace"><span class="text-info" id="val-dht1-t">--.-°C</span> / <span class="text-warning"><span class="text-muted small">RH</span> <span id="val-dht1-h">--%</span></span></span>
+                                </li>
+                                <!-- REQ-055: "Main Bus Voltage" row removed — was sourced from
+                                     hardcoded firmware constant / unconnected analog pin.
+                                     The real battery voltage now lives in the Power card
+                                     (SmartShunt-measured), so this row was both fake AND duplicate. -->
+                                <li class="list-group-item bg-dark text-white border-secondary d-flex justify-content-between">
+                                    <span>Uptime</span>
+                                    <span class="text-muted font-monospace" id="val-uptime">--</span>
+                                </li>
+                                <li class="list-group-item bg-dark text-white border-secondary d-flex justify-content-between">
+                                    <span>CPU Load</span>
+                                    <span class="text-muted font-monospace" id="val-cpu">N/A</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- SPEC-036: POWER MONITORING (MPPT + SmartShunt via LoRa) -->
+                    <div class="card bg-dark border-success mb-4" id="power-card">
+                        <div class="card-header border-success text-success fw-bold d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-lightning-charge-fill"></i> POWER (Solar + Battery)</span>
+                            <span class="badge bg-secondary" id="power-cs-pill">--</span>
+                        </div>
+                        <div class="card-body p-0">
+                            <ul class="list-group list-group-flush bg-dark">
+                                <li class="list-group-item bg-dark text-white border-secondary d-flex justify-content-between">
+                                    <span title="Battery voltage from SmartShunt (more accurate than MPPT)">Battery</span>
+                                    <span class="fw-bold font-monospace">
+                                        <span id="pwr-batt-v" class="text-success">--.-- V</span>
+                                        &nbsp;·&nbsp;
+                                        <span id="pwr-soc" class="text-info" title="SOC from SmartShunt coulomb counter">--.-%</span>
+                                        <span id="pwr-soc-v" class="text-secondary small ms-1" title="SOC estimated from battery voltage (LiFePO4 curve). Reads lower under load."></span>
+                                    </span>
+                                </li>
+                                <li class="list-group-item bg-warning bg-opacity-25 border-warning d-none" id="pwr-soc-drift-row">
+                                    <small class="text-warning fw-bold">
+                                        <i class="bi bi-exclamation-triangle-fill"></i>
+                                        SmartShunt SOC drifted from voltage estimate by <span id="pwr-soc-drift-val">--</span> pts &mdash; needs re-sync (full-charge or manual sync in VictronConnect)
+                                    </small>
+                                </li>
+                                <li class="list-group-item bg-dark text-white border-secondary d-flex justify-content-between">
+                                    <span title="Net battery current from SmartShunt; negative = discharging">Battery Net</span>
+                                    <span class="fw-bold font-monospace">
+                                        <span id="pwr-batt-i" class="text-warning">--.-- A</span>
+                                        &nbsp;·&nbsp;
+                                        <span id="pwr-batt-p" class="text-warning">-- W</span>
+                                    </span>
+                                </li>
+                                <li class="list-group-item bg-dark text-white border-secondary d-flex justify-content-between">
+                                    <span title="Solar panel voltage and instantaneous power from MPPT">Solar</span>
+                                    <span class="fw-bold font-monospace">
+                                        <span id="pwr-panel-v" class="text-info">--.- V</span>
+                                        &nbsp;·&nbsp;
+                                        <span id="pwr-panel-w" class="text-success">-- W</span>
+                                    </span>
+                                </li>
+                                <li class="list-group-item bg-dark text-white border-secondary d-flex justify-content-between">
+                                    <span title="Current into battery from MPPT charger">→ Battery</span>
+                                    <span class="fw-bold font-monospace"><span id="pwr-charge-i" class="text-success">--.-- A</span></span>
+                                </li>
+                                <li class="list-group-item bg-dark text-white border-secondary d-flex justify-content-between">
+                                    <span title="Current out of MPPT LOAD terminal (Pi, sensors, low-power loads)">→ LOAD output</span>
+                                    <span class="fw-bold font-monospace"><span id="pwr-load-i" class="text-warning">--.-- A</span></span>
+                                </li>
+                                <li class="list-group-item bg-dark text-white border-secondary d-flex justify-content-between">
+                                    <span title="Estimated loads bypassing MPPT LOAD (visible only when battery discharging)">→ Direct loads</span>
+                                    <span class="fw-bold font-monospace"><span id="pwr-direct-w" class="text-muted">-- W</span></span>
+                                </li>
+                                <li class="list-group-item bg-dark border-secondary d-none" id="pwr-err-row">
+                                    <div class="alert alert-danger mb-0 py-1 px-2" id="pwr-err-text">MPPT error</div>
+                                </li>
+                                <li class="list-group-item bg-dark border-secondary py-1">
+                                    <small class="text-muted">Last update: <span id="pwr-last-update">never</span></small>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card bg-dark border-secondary">
+                        <div class="card-header border-secondary text-white fw-bold">
+                            EVENT LOG
+                        </div>
+                        <div class="card-body bg-black" style="height: 300px; overflow-y: auto; font-family: monospace; font-size: 0.8rem;">
+                            <div id="console-log" class="text-success">
+                                > System Initialized...<br>
+                                > Connecting to Telemetry Stream...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- GATEWAY MANAGEMENT TAB (SPEC-060) -->
+        <div class="tab-pane fade" id="gateway" role="tabpanel" aria-labelledby="gateway-tab">
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="card bg-dark border-primary mb-4">
+                        <div class="card-header border-primary text-primary fw-bold d-flex justify-content-between align-items-center">
+                            <span>ONSHORE GATEWAY MANAGEMENT (System C)</span>
+                            <button class="btn btn-outline-primary btn-sm" onclick="loadGatewayWifiStatus()">
+                                <i class="bi bi-arrow-clockwise"></i> Refresh
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-4">
+                                <!-- wlan0: Embedded -->
+                                <div class="col-md-6">
+                                    <div class="card bg-black border-secondary">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                                <div>
+                                                    <h6 class="text-white mb-0">EMBEDDED ADAPTER</h6>
+                                                    <small class="text-muted">Interface: wlan0</small>
+                                                </div>
+                                                <span class="badge" id="gw-wlan0-badge">---</span>
+                                            </div>
+                                            <p class="small text-light mb-1">Connection: <span class="text-info" id="gw-wlan0-conn">---</span></p>
+                                            <p class="small text-light mb-4">IP Address: <span class="font-monospace text-success" id="gw-wlan0-ip">---</span></p>
+                                            <div class="d-grid gap-2">
+                                                <button class="btn btn-outline-success btn-sm admin-only" onclick="controlGatewayWifi('wlan0', 'UP')">ENABLE / CONNECT</button>
+                                                <button class="btn btn-outline-danger btn-sm admin-only" onclick="controlGatewayWifi('wlan0', 'DOWN')">DISABLE / DISCONNECT</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- wlan1: Long Range -->
+                                <div class="col-md-6">
+                                    <div class="card bg-black border-secondary">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                                <div>
+                                                    <h6 class="text-info mb-0">LONG-RANGE ADAPTER</h6>
+                                                    <small class="text-muted">Interface: wlan1 (USB)</small>
+                                                </div>
+                                                <span class="badge" id="gw-wlan1-badge">---</span>
+                                            </div>
+                                            <p class="small text-light mb-1">Connection: <span class="text-info" id="gw-wlan1-conn">---</span></p>
+                                            <p class="small text-light mb-4">IP Address: <span class="font-monospace text-success" id="gw-wlan1-ip">---</span></p>
+                                            <div class="d-grid gap-2">
+                                                <button class="btn btn-outline-info btn-sm admin-only" onclick="controlGatewayWifi('wlan1', 'UP')">ENABLE / CONNECT</button>
+                                                <button class="btn btn-outline-danger btn-sm admin-only" onclick="controlGatewayWifi('wlan1', 'DOWN')">DISABLE / DISCONNECT</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card bg-dark border-secondary">
+                        <div class="card-header border-secondary text-white fw-bold">SYSTEM C CONTEXT</div>
+                        <div class="card-body">
+                            <p class="text-muted small">The Onshore Gateway (node1) acts as the bridge between the Buoy LoRa mesh and the internet.</p>
+                            <p class="text-muted small">In the current prototype configuration, internet is provided by the buoy's 4G router via WiFi. The <strong>Long-Range Adapter</strong> is the primary uplink.</p>
+                            <div class="alert alert-warning py-2 px-3 small border-warning bg-warning bg-opacity-10 text-warning">
+                                <i class="bi bi-exclamation-triangle-fill"></i> Caution: Disabling the active interface may result in loss of remote access if no other gateway is available.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- LORA DIAGNOSTICS TAB -->
+        <div class="tab-pane fade" id="lora" role="tabpanel" aria-labelledby="lora-tab">
+            <div class="text-end mb-2">
+                <span class="badge bg-info text-dark" title="LoRa radio diagnostics — RSSI/SNR/packet stats from the onshore gateway's LoRa-E5 module">
+                    <i class="bi bi-broadcast"></i> Transport: LoRa
+                </span>
+            </div>
+            <div class="row">
+                <div class="col-md-8">
+                    <!-- SIGNAL ANALYSIS -->
+                    <div class="card bg-dark border-info mb-4">
+                        <div class="card-header border-info text-info fw-bold d-flex justify-content-between align-items-center">
+                            <span>RADIO SIGNAL ANALYSIS</span>
+                            <div class="d-flex align-items-center">
+                                <small class="text-muted me-2">LQI:</small>
+                                <span class="badge bg-success" id="val-lqi">100%</span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="row text-center mb-4">
+                                <div class="col-md-4">
+                                    <h6 class="text-muted small text-uppercase">RSSI</h6>
+                                    <h2 class="text-white font-monospace mb-0" id="val-rssi">--- dBm</h2>
+                                    <div class="progress bg-black border border-secondary mt-2" style="height: 10px;">
+                                        <div id="pb-rssi" class="progress-bar bg-info" role="progressbar" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <h6 class="text-muted small text-uppercase">SNR</h6>
+                                    <h2 class="text-white font-monospace mb-0" id="val-snr">--- dB</h2>
+                                    <div class="progress bg-black border border-secondary mt-2" style="height: 10px;">
+                                        <div id="pb-snr" class="progress-bar bg-info" role="progressbar" style="width: 50%"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <h6 class="text-muted small text-uppercase">Latency (RTT)</h6>
+                                    <h2 class="text-warning font-monospace mb-0" id="val-rtt">--- ms</h2>
+                                    <span class="badge bg-secondary mt-2" id="badge-latency">IDLE</span>
+                                </div>
+                            </div>
+                            <div class="border border-secondary bg-black" style="height: 300px; position: relative;">
+                                <canvas id="loraChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <!-- CONFIGURATION -->
+                    <div class="card bg-dark border-secondary mb-4">
+                        <div class="card-header border-secondary text-white fw-bold">MODEM CONFIGURATION</div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="text-muted small">Modem Preset</label>
+                                <select class="form-select form-select-sm bg-black text-info border-secondary" id="lora-preset" onchange="updateLoraConfig()">
+                                    <option value="SHORT_FAST">SHORT_FAST</option>
+                                    <option value="LONG_SLOW">LONG_SLOW</option>
+                                    <option value="VERY_LONG_SLOW">VERY_LONG_SLOW</option>
+                                    <option value="CUSTOM">CUSTOM (Manual)</option>
+                                </select>
+                            </div>
+                            <div id="custom-lora-config" class="d-none">
+                                <div class="row g-2 mb-3">
+                                    <div class="col-6">
+                                        <label class="text-muted tiny">Freq (MHz)</label>
+                                        <input type="number" class="form-control form-control-sm bg-black text-white border-secondary" id="lora-freq" value="868.1">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="text-muted tiny">SF</label>
+                                        <select class="form-select form-select-sm bg-black text-white border-secondary" id="lora-sf">
+                                            <option value="7">SF7</option>
+                                            <option value="8">SF8</option>
+                                            <option value="9">SF9</option>
+                                            <option value="10">SF10</option>
+                                            <option value="11">SF11</option>
+                                            <option value="12" selected>SF12</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <button class="btn btn-outline-info btn-sm w-100 mb-3 admin-only" onclick="applyCustomConfig()">APPLY CUSTOM</button>
+                            </div>
+                            <div class="mb-3">
+                                <label class="text-muted small">Regulatory Region</label>
+                                <select class="form-select form-select-sm bg-black text-white border-secondary" id="lora-region">
+                                    <option value="EU868" selected>EU_868 (Sagres)</option>
+                                    <option value="US915">US_915</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- DIAGNOSTICS -->
+                    <div class="card bg-dark border-secondary">
+                        <div class="card-header border-secondary text-white fw-bold">LINK TESTS</div>
+                        <div class="card-body">
+                            <button class="btn btn-outline-info btn-sm w-100 mb-2 admin-only" onclick="runLoraTest('PING')">PING TEST (Atomic RTT)</button>
+                            <button class="btn btn-outline-warning btn-sm w-100 mb-2 admin-only" onclick="runLoraTest('STRESS')">PDR STRESS TEST (10 Packets)</button>
+                            
+                            <div id="stress-progress" class="d-none mt-3">
+                                <div class="d-flex justify-content-between small text-muted mb-1">
+                                    <span>Stress Test Progress</span>
+                                    <span id="stress-count">0/10</span>
+                                </div>
+                                <div class="progress bg-black border border-secondary" style="height: 10px;">
+                                    <div id="pb-stress" class="progress-bar bg-warning progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+                                </div>
+                                <div id="stress-result" class="mt-2 text-center d-none">
+                                    <span class="badge bg-black border border-warning text-warning fw-bold p-2" id="val-pdr">---</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- COMMUNITY TAB (SPEC-030) -->
+        <div class="tab-pane fade" id="community" role="tabpanel" aria-labelledby="community-tab">
+            <div class="text-end mb-2">
+                <span class="badge bg-info text-dark" title="Same telemetry as Mission Control, public view — arrives via LoRa">
+                    <i class="bi bi-broadcast"></i> Transport: LoRa
+                </span>
+            </div>
+            <div class="row justify-content-center">
+                <div class="col-lg-11">
+                    <div class="text-center mb-4">
+                        <h2 class="text-info fw-bold"><i class="bi bi-water"></i> Community OceanPulse Panel</h2>
+                        <p class="text-muted">Open ocean monitoring for Sagres and the Algarve coast</p>
+                    </div>
+
+                    <!-- Metric Cards -->
+                    <div class="row mb-4 g-3">
+                        <div class="col">
+                            <div class="card bg-dark text-center" style="border-color:#00bcd4;">
+                                <div class="card-body py-2">
+                                    <small class="text-muted text-uppercase">Water Temp</small>
+                                    <h3 class="font-monospace mb-0" style="color:#00bcd4;" id="c-temp">--</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="card bg-dark text-center" style="border-color:#4caf50;">
+                                <div class="card-body py-2">
+                                    <small class="text-muted text-uppercase">Salinity</small>
+                                    <h3 class="font-monospace mb-0" style="color:#4caf50;" id="c-salinity">--</h3>
+                                    <small class="text-muted">PSU</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="card bg-dark text-center" style="border-color:#ff9800;">
+                                <div class="card-body py-2">
+                                    <small class="text-muted text-uppercase">Dissolved O<sub>2</sub></small>
+                                    <h3 class="font-monospace mb-0" style="color:#ff9800;" id="c-do">--</h3>
+                                    <small class="text-muted">mg/L</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="card bg-dark text-center" id="c-oil-card" style="border-color:#4caf50;">
+                                <div class="card-body py-2">
+                                    <small class="text-muted text-uppercase">Oil Status</small>
+                                    <h3 class="mb-0" id="c-oil-status"><i class="bi bi-check-circle text-success"></i> <span class="text-success">CLEAR</span></h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="card bg-dark border-success text-center">
+                                <div class="card-body py-2">
+                                    <small class="text-muted text-uppercase">Buoy Status</small>
+                                    <h3 class="mb-0" id="c-status"><i class="bi bi-check-circle text-success"></i></h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Deployment Location Map -->
+                    <div class="card bg-dark border-secondary mb-4">
+                        <div class="card-header border-secondary py-2 fw-bold small" style="color:#00bcd4;">
+                            <i class="bi bi-geo-alt-fill"></i> DEPLOYMENT LOCATION — PORTO DA BALEEIRA, SAGRES
+                        </div>
+                        <div class="card-body p-0">
+                            <div id="c-map" style="height:340px; width:100%; background:#0a0d14;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Time Window Selector -->
+                    <div class="d-flex justify-content-end mb-3">
+                        <div class="btn-group btn-group-sm" role="group" id="c-time-window">
+                            <button type="button" class="btn btn-outline-secondary" data-hours="1">1h</button>
+                            <button type="button" class="btn btn-outline-secondary" data-hours="6">6h</button>
+                            <button type="button" class="btn btn-outline-secondary active" data-hours="24">24h</button>
+                            <button type="button" class="btn btn-outline-secondary" data-hours="168">7d</button>
+                        </div>
+                    </div>
+
+                    <!-- Graphs Row 1: Temperature + Salinity -->
+                    <div class="row mb-4 g-3">
+                        <div class="col-md-6">
+                            <div class="card bg-dark border-secondary">
+                                <div class="card-header border-secondary d-flex justify-content-between align-items-center py-2">
+                                    <span style="color:#00bcd4;" class="fw-bold small"><i class="bi bi-thermometer-half"></i> WATER TEMPERATURE</span>
+                                </div>
+                                <div class="card-body p-2">
+                                    <canvas id="chart-temp" height="180"></canvas>
+                                    <div class="text-center text-muted small mt-1 d-none" id="chart-temp-empty">Awaiting data...</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card bg-dark border-secondary">
+                                <div class="card-header border-secondary d-flex justify-content-between align-items-center py-2">
+                                    <span style="color:#4caf50;" class="fw-bold small"><i class="bi bi-droplet-half"></i> SALINITY</span>
+                                </div>
+                                <div class="card-body p-2">
+                                    <canvas id="chart-salinity" height="180"></canvas>
+                                    <div class="text-center text-muted small mt-1 d-none" id="chart-salinity-empty">Awaiting data...</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Graphs Row 2: DO + Oil Presence -->
+                    <div class="row mb-4 g-3">
+                        <div class="col-md-6">
+                            <div class="card bg-dark border-secondary">
+                                <div class="card-header border-secondary d-flex justify-content-between align-items-center py-2">
+                                    <span style="color:#ff9800;" class="fw-bold small"><i class="bi bi-wind"></i> DISSOLVED OXYGEN — SATURATION %</span>
+                                </div>
+                                <div class="card-body p-2">
+                                    <canvas id="chart-do" height="180"></canvas>
+                                    <div class="text-center text-muted small mt-1" id="chart-do-empty">
+                                        <i class="bi bi-clock-history"></i> Sensor deploying soon (Atlas EZO-DO)
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card bg-dark border-secondary">
+                                <div class="card-header border-secondary d-flex justify-content-between align-items-center py-2">
+                                    <span style="color:#f44336;" class="fw-bold small"><i class="bi bi-exclamation-triangle"></i> OIL PRESENCE</span>
+                                </div>
+                                <div class="card-body p-2">
+                                    <canvas id="chart-oil" height="180"></canvas>
+                                    <div class="text-center text-muted small mt-1 d-none" id="chart-oil-empty">No detection data yet</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Graphs Row 3: Solar Activity -->
+                    <div class="row mb-4 g-3">
+                        <div class="col-12">
+                            <div class="card bg-dark border-secondary">
+                                <div class="card-header border-secondary d-flex justify-content-between align-items-center py-2">
+                                    <span style="color:#ffc107;" class="fw-bold small"><i class="bi bi-sun"></i> SOLAR PANEL INPUT</span>
+                                    <span class="badge bg-dark text-warning border border-warning" id="c-solar-now">-- W</span>
+                                </div>
+                                <div class="card-body p-2">
+                                    <canvas id="chart-solar" height="160"></canvas>
+                                    <div class="text-center text-muted small mt-1 d-none" id="chart-solar-empty">Awaiting solar telemetry...</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Oil Spill Contour Panel -->
+                    <div class="card bg-dark mb-4" id="c-oil-panel" style="border-color:#4caf50;">
+                        <div class="card-header border-secondary py-2 fw-bold small" id="c-oil-panel-header" style="color:#4caf50;">
+                            <i class="bi bi-shield-check"></i> OIL SPILL DETECTION
+                        </div>
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-md-6 text-center mb-3 mb-md-0">
+                                    <!-- Contour image from vision service -->
+                                    <img id="c-oil-img" class="rounded d-none" style="max-width:100%;max-height:300px;border:1px solid #333;" alt="UV Contour">
+                                    <div id="c-oil-placeholder" class="text-center py-5">
+                                        <i class="bi bi-check-circle" style="font-size:3rem;color:#4caf50;"></i>
+                                        <p class="text-muted mt-2 mb-0">No Oil Detected</p>
+                                        <small class="text-muted">Last UV scan data will appear here</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <table class="table table-dark table-sm mb-0" style="font-size:0.85rem;">
+                                        <tbody>
+                                            <tr>
+                                                <td class="text-muted border-secondary">Spill Regions</td>
+                                                <td class="fw-bold text-white border-secondary" id="c-oil-regions">0</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="text-muted border-secondary">Frame Coverage</td>
+                                                <td class="fw-bold text-white border-secondary" id="c-oil-coverage">0%</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="text-muted border-secondary">Fluorescent Pixels</td>
+                                                <td class="fw-bold text-white border-secondary" id="c-oil-pixels">0</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="text-muted border-secondary">Detection Score</td>
+                                                <td class="fw-bold border-secondary" id="c-oil-score"><span class="text-success">0 / 100</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="text-muted border-secondary">Last Capture</td>
+                                                <td class="text-muted border-secondary" id="c-oil-time">--</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- About Section -->
+                    <div class="card bg-dark border-secondary mb-4">
+                        <div class="card-header text-info fw-bold border-secondary">
+                            <i class="bi bi-info-circle"></i> ABOUT THIS PROJECT
+                        </div>
+                        <div class="card-body text-light">
+                            <p>OceanPulse is an open ocean monitoring platform being built for deployment at the <strong class="text-info">Port of Sagres, Portugal</strong>. The system will monitor water quality, detect environmental anomalies including oil spills, and provide real-time data to the community.</p>
+                            <p>You're seeing live data from a lab prototype — sensors and UV oil detection running on the bench, connected to a water reservoir. Governed by the ADT Framework for full transparency and accountability.</p>
+                            <p class="mb-0"><strong class="text-info">Phase 1:</strong> Water quality sensors + LoRa telemetry + vision camera + UV oil detection. <strong class="text-info">Target:</strong> Port deployment 2026.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ACTIVITY LOG TAB (Admin-only, SPEC-028 Section 6) -->
+        <div class="tab-pane fade" id="activity" role="tabpanel" aria-labelledby="activity-tab">
+            <div class="row justify-content-center">
+                <div class="col-md-12">
+                    <div class="card bg-dark border-danger mb-4">
+                        <div class="card-header border-danger text-danger fw-bold d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-shield-lock"></i> PANEL ACTIVITY LOG</span>
+                            <div class="d-flex gap-2 align-items-center">
+                                <select class="form-select form-select-sm bg-black text-white border-secondary" id="activity-hours" style="width:auto;" onchange="loadActivityLog()">
+                                    <option value="1">Last 1h</option>
+                                    <option value="6">Last 6h</option>
+                                    <option value="24" selected>Last 24h</option>
+                                    <option value="72">Last 3 days</option>
+                                    <option value="168">Last 7 days</option>
+                                </select>
+                                <button class="btn btn-outline-danger btn-sm" onclick="loadActivityLog()"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
+                                <span class="badge bg-secondary" id="activity-count">0 entries</span>
+                            </div>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive" style="max-height: 600px; overflow-y: auto;">
+                                <table class="table table-dark table-sm table-striped mb-0" style="font-size: 0.8rem;">
+                                    <thead class="sticky-top bg-black">
+                                        <tr>
+                                            <th class="text-muted">TIMESTAMP</th>
+                                            <th class="text-muted">IP</th>
+                                            <th class="text-muted">USER</th>
+                                            <th class="text-muted">ROLE</th>
+                                            <th class="text-muted">ACTION</th>
+                                            <th class="text-muted">DETAIL</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="activity-tbody">
+                                        <tr><td colspan="6" class="text-center text-muted py-4">Click refresh or switch to this tab to load</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VISION / OIL DETECTION TAB -->
+        <div class="tab-pane fade" id="vision" role="tabpanel" aria-labelledby="vision-tab">
+            <div class="text-end mb-2">
+                <span class="badge bg-warning text-dark" title="High-bandwidth: camera frames and oil-detection alerts arrive over 4G (LTE) via the onboard 4G router. LoRa cannot carry image data.">
+                    <i class="bi bi-router-fill"></i> Transport: 4G
+                </span>
+            </div>
+            <div class="row">
+                <!-- LIVE STREAM -->
+                <div class="col-md-7">
+                    <div class="card bg-dark border-warning mb-4">
+                        <div class="card-header border-warning text-warning fw-bold d-flex justify-content-between align-items-center">
+                            <span>ANALYSIS FEED (SYSTEM A)</span>
+                            <div class="d-flex gap-2 align-items-center">
+                                <button class="btn btn-warning btn-sm fw-bold admin-only" id="btn-uv-capture" onclick="uvCapture()">
+                                    <i class="bi bi-lightning-fill"></i> UV CAPTURE
+                                </button>
+                                <span class="badge bg-secondary" id="vision-status">OFFLINE</span>
+                                <small class="text-muted font-monospace" id="snapshot-time"></small>
+                            </div>
+                        </div>
+                        <div class="card-body p-0 bg-black d-flex align-items-center justify-content-center" style="min-height: 480px; position: relative; overflow: hidden;">
+                            <img id="vision-feed" src="" class="img-fluid d-none" style="width: 100%; height: auto; max-height: 600px; object-fit: contain;">
+                            <div id="vision-placeholder" class="text-center text-muted p-5">
+                                <i class="bi bi-camera-video-off" style="font-size: 4rem;"></i>
+                                <h4 class="mt-3">AWAITING SNAPSHOT</h4>
+                                <p class="small text-uppercase">Updates every 10s from System A analysis pipeline</p>
+                            </div>
+                            
+                            <!-- UV Progress Overlay (SPEC-061) -->
+                            <div id="uv-progress-overlay" class="position-absolute top-0 start-0 w-100 h-100 bg-black bg-opacity-75 d-none align-items-center justify-content-center flex-column" style="z-index: 10;">
+                                <div class="text-warning fw-bold mb-4"><i class="bi bi-lightning-fill"></i> UV SEQUENCE IN PROGRESS</div>
+                                
+                                <div class="w-75">
+                                    <!-- Inverter Track -->
+                                    <div class="mb-3">
+                                        <div class="d-flex justify-content-between tiny text-muted text-uppercase mb-1">
+                                            <span>Main Inverter (D4)</span>
+                                            <span id="uv-t-inverter">OFF</span>
+                                        </div>
+                                        <div class="progress bg-dark border border-secondary" style="height: 6px;">
+                                            <div id="uv-p-inverter" class="progress-bar bg-primary" style="width: 0%"></div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Relay Boot Track -->
+                                    <div class="mb-3">
+                                        <div class="d-flex justify-content-between tiny text-muted text-uppercase mb-1">
+                                            <span>Timer Relay Boot (10s)</span>
+                                            <span id="uv-t-boot">AWAITING</span>
+                                        </div>
+                                        <div class="progress bg-dark border border-secondary" style="height: 6px;">
+                                            <div id="uv-p-boot" class="progress-bar bg-info" style="width: 0%"></div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Flash/Camera Sync Track -->
+                                    <div class="mb-3">
+                                        <div class="d-flex justify-content-between tiny text-muted text-uppercase mb-1">
+                                            <span>UV Flash & Camera Burst</span>
+                                            <span id="uv-t-flash">AWAITING</span>
+                                        </div>
+                                        <div class="progress bg-dark border border-secondary" style="height: 12px;">
+                                            <div id="uv-p-flash" class="progress-bar bg-warning progress-bar-striped progress-bar-animated" style="width: 0%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div id="uv-progress-text" class="mt-4 text-white font-monospace small">Initializing Hardware...</div>
+                                <div class="mt-2 text-danger tiny fw-bold blink">DANGER: 50W UV RADIATION ACTIVE</div>
+                            </div>
+
+                            <!-- Manual Flash Sync Button (visible during sequence) -->
+                            <div class="w-75 mt-4">
+                                <button id="btn-uv-sync" class="btn btn-warning btn-lg fw-bold w-100" onclick="uvSyncNow()" disabled>
+                                    <i class="bi bi-camera-fill"></i> MARK FLASH / SYNC NOW
+                                </button>
+                                <div id="uv-mark-info" class="mt-2 text-warning fw-bold small font-monospace text-center d-none"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ALERTS & ANALYSIS -->
+                <div class="col-md-5">
+                    <!-- SAFETY PANEL -->
+                    <div class="card bg-dark border-info mb-4">
+                        <div class="card-header border-info text-info fw-bold d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-shield-exclamation"></i> SAFETY MONITOR</span>
+                            <span class="badge bg-success" id="safety-status">CLEAR</span>
+                        </div>
+                        <div class="card-body">
+                            <!-- Safety Camera Feed -->
+                            <div class="bg-black border border-secondary p-1 text-center mb-3" style="min-height: 150px;">
+                                <img id="safety-feed" src="" class="img-fluid d-none" style="max-height: 160px;">
+                                <div id="safety-placeholder" class="text-muted d-flex flex-column align-items-center justify-content-center py-4">
+                                    <i class="bi bi-camera" style="font-size: 1.5rem;"></i>
+                                    <span class="small mt-1">AWAITING SAFETY FEED</span>
+                                </div>
+                            </div>
+
+                            <!-- Sensor Readings -->
+                            <div class="row text-center mb-3">
+                                <div class="col-6 border-end border-secondary">
+                                    <small class="text-muted text-uppercase" style="font-size:0.65rem;">DISTANCE</small>
+                                    <h4 class="fw-bold text-white font-monospace mb-0" id="val-dist">--</h4>
+                                    <small class="text-muted">cm</small>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted text-uppercase" style="font-size:0.65rem;">PIR MOTION</small>
+                                    <h4 class="fw-bold text-success font-monospace mb-0" id="val-pir">--</h4>
+                                    <small class="text-muted">HC-SR501</small>
+                                </div>
+                            </div>
+
+                            <!-- Threshold Sliders (SPEC-035) -->
+                            <div class="mb-2 admin-only">
+                                <div class="d-flex justify-content-between">
+                                    <small class="text-muted">Min Safe Distance</small>
+                                    <small class="text-info font-monospace" id="thresh-dist-val">150 cm</small>
+                                </div>
+                                <input type="range" class="form-range form-range-sm" id="thresh-dist" min="30" max="500" value="150" oninput="updateThreshold('dist')">
+                            </div>
+
+                            <div class="mb-2 admin-only">
+                                <div class="d-flex justify-content-between">
+                                    <small class="text-muted">Clear Hysteresis</small>
+                                    <small class="text-info font-monospace" id="thresh-hyst-val">30 cm</small>
+                                </div>
+                                <input type="range" class="form-range form-range-sm" id="thresh-hyst" min="5" max="100" value="30" oninput="updateThreshold('hyst')">
+                            </div>
+
+                            <div class="mb-2 admin-only">
+                                <div class="d-flex justify-content-between">
+                                    <small class="text-muted">PIR Clear Delay</small>
+                                    <small class="text-info font-monospace" id="delay-pir-val">5 s</small>
+                                </div>
+                                <input type="range" class="form-range form-range-sm" id="delay-pir" min="1" max="30" value="5" oninput="updateThreshold('pir')">
+                            </div>
+
+                            <div class="form-check form-switch mt-2 mb-1 admin-only">
+                                <input class="form-check-input" type="checkbox" id="safety-pir-block" checked>
+                                <label class="form-check-label text-muted small" for="safety-pir-block">Block UV if PIR detects motion</label>
+                            </div>
+                            <div class="form-check form-switch admin-only">
+                                <input class="form-check-input" type="checkbox" id="safety-block-uv" checked>
+                                <label class="form-check-label text-muted small" for="safety-block-uv">Block UV if distance threshold exceeded</label>
+                            </div>
+                            <div class="admin-only">
+                                <small id="safety-save-status" class="text-muted small"></small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- DETECTION SETTINGS (Admin-only) -->
+                    <div class="card bg-dark border-warning mb-4 admin-only">
+                        <div class="card-header border-warning text-warning fw-bold d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-sliders"></i> DETECTION TUNING</span>
+                            <button class="btn btn-outline-warning btn-sm" onclick="applyDetectionConfig()"><i class="bi bi-check-lg"></i> Apply</button>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-2">
+                                <div class="d-flex justify-content-between">
+                                    <small class="text-muted">Brightness Threshold</small>
+                                    <small class="text-warning font-monospace" id="dt-bright-val">80</small>
+                                </div>
+                                <input type="range" class="form-range form-range-sm" id="dt-bright" min="10" max="220" value="80" oninput="document.getElementById('dt-bright-val').innerText=this.value">
+                                <small class="text-muted" style="font-size:0.65rem;">Lower = more sensitive (catches dim fluorescence). Higher = stricter (only bright spots).</small>
+                            </div>
+                            <div class="mb-2">
+                                <div class="d-flex justify-content-between">
+                                    <small class="text-muted">Saturation Threshold</small>
+                                    <small class="text-warning font-monospace" id="dt-sat-val">50</small>
+                                </div>
+                                <input type="range" class="form-range form-range-sm" id="dt-sat" min="5" max="200" value="50" oninput="document.getElementById('dt-sat-val').innerText=this.value">
+                                <small class="text-muted" style="font-size:0.65rem;">Filters white reflections vs colored fluorescence. Lower = more false positives.</small>
+                            </div>
+                            <div class="mb-2">
+                                <div class="d-flex justify-content-between">
+                                    <small class="text-muted">Min Region Size (px)</small>
+                                    <small class="text-warning font-monospace" id="dt-region-val">50</small>
+                                </div>
+                                <input type="range" class="form-range form-range-sm" id="dt-region" min="5" max="500" value="50" oninput="document.getElementById('dt-region-val').innerText=this.value">
+                                <small class="text-muted" style="font-size:0.65rem;">Ignores blobs smaller than this. Higher = less noise, may miss small spills.</small>
+                            </div>
+                            <div class="mb-2">
+                                <div class="d-flex justify-content-between">
+                                    <small class="text-muted">Score Sensitivity</small>
+                                    <small class="text-warning font-monospace" id="dt-scale-val">2000</small>
+                                </div>
+                                <input type="range" class="form-range form-range-sm" id="dt-scale" min="500" max="5000" step="100" value="2000" oninput="document.getElementById('dt-scale-val').innerText=this.value">
+                                <small class="text-muted" style="font-size:0.65rem;">Multiplier: higher = more sensitive scoring. 2000 means 5% coverage = score 100.</small>
+                            </div>
+                            <div class="mb-2">
+                                <div class="d-flex justify-content-between">
+                                    <small class="text-muted">UV Warmup (seconds)</small>
+                                    <small class="text-warning font-monospace" id="dt-warmup-val">8.0</small>
+                                </div>
+                                <input type="range" class="form-range form-range-sm" id="dt-warmup" min="1" max="30" step="0.5" value="8" oninput="document.getElementById('dt-warmup-val').innerText=this.value">
+                                <small class="text-muted" style="font-size:0.65rem;">Seconds to wait after UV ON before capturing. Longer = brighter, steadier lamp.</small>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-6">
+                                    <small class="text-muted">Morph Kernel</small>
+                                    <input type="number" class="form-control form-control-sm bg-black text-white border-secondary" id="dt-morph" value="5" min="3" max="15" step="2">
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted">Capture Samples</small>
+                                    <input type="number" class="form-control form-control-sm bg-black text-white border-secondary" id="dt-samples" value="6" min="1" max="20">
+                                </div>
+                            </div>
+
+                            <!-- Night Hunter Sampler (SPEC-059) -->
+                            <hr class="border-secondary mt-3 mb-3">
+                            <h6 class="text-warning mb-3"><i class="bi bi-moon-stars-fill"></i> NIGHT HUNTER SAMPLER</h6>
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="dt-sampler-enabled">
+                                <label class="form-check-label text-muted" for="dt-sampler-enabled">Enable Automatic Sampling</label>
+                            </div>
+                            <div class="row g-2 mb-3">
+                                <div class="col-4">
+                                    <small class="text-muted tiny">Start (Hour)</small>
+                                    <input type="number" class="form-control form-control-sm bg-black text-white border-secondary" id="dt-sampler-start" value="22" min="0" max="23">
+                                </div>
+                                <div class="col-4">
+                                    <small class="text-muted tiny">End (Hour)</small>
+                                    <input type="number" class="form-control form-control-sm bg-black text-white border-secondary" id="dt-sampler-end" value="6" min="0" max="23">
+                                </div>
+                                <div class="col-4">
+                                    <small class="text-muted tiny">Interval (min)</small>
+                                    <input type="number" class="form-control form-control-sm bg-black text-white border-secondary" id="dt-sampler-interval" value="30" min="5" max="1440">
+                                </div>
+                            </div>
+                            <small class="text-muted d-block mb-3" style="font-size:0.65rem;">Automatically performs UV captures during the set window. Interval is the time between samples in minutes.</small>
+                            
+                            <div id="dt-status" class="small mt-2" style="display:none;"></div>
+                        </div>
+                    </div>
+
+                    <!-- OIL DETECTION ALERTS -->
+                    <div class="card bg-dark border-danger mb-4">
+                        <div class="card-header border-danger text-danger fw-bold d-flex justify-content-between align-items-center">
+                            <span>OIL DETECTION ALERTS</span>
+                            <span class="badge bg-danger" id="alert-count">0 ALERTS</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-4">
+                                <h6 class="text-muted small text-uppercase mb-3">LATEST DETECTION FRAME</h6>
+                                <div class="bg-black border border-secondary p-1 text-center" style="min-height: 200px;">
+                                    <img id="latest-alert-img" src="" class="img-fluid d-none" style="max-height: 180px;">
+                                    <div id="alert-placeholder" class="text-muted d-flex flex-column align-items-center justify-content-center h-100 py-5">
+                                        <i class="bi bi-shield-check" style="font-size: 2rem;"></i>
+                                        <span class="small mt-2">NO ALERTS DETECTED</span>
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-between mt-2">
+                                    <span class="small text-muted">DETECTION SCORE:</span>
+                                    <span class="fw-bold text-danger font-monospace" id="val-score">0.0</span>
+                                </div>
+                            </div>
+
+                            <h6 class="text-muted small text-uppercase mb-2">DETECTION LOG (LAST 10)</h6>
+                            <div id="vision-log" class="list-group list-group-flush bg-dark border border-secondary" style="max-height: 250px; overflow-y: auto; font-family: monospace; font-size: 0.75rem;">
+                                <!-- Alerts will be prepended here -->
+                                <div class="list-group-item bg-dark text-muted border-secondary text-center italic py-4">
+                                    No historical detection data
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- POWER TAB — historical charts for MPPT + SmartShunt telemetry -->
+        <div class="tab-pane fade" id="power" role="tabpanel" aria-labelledby="power-tab">
+            <div class="text-end mb-2">
+                <span class="badge bg-info text-dark" title="Power telemetry (MPPT + SmartShunt) arrives via LoRa P:STATUS packets from the Health Pi's combined bridge process">
+                    <i class="bi bi-broadcast"></i> Transport: LoRa
+                </span>
+            </div>
+            <div class="card bg-dark border-success mb-3">
+                <div class="card-header border-success text-success fw-bold d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <span><i class="bi bi-lightning-charge-fill"></i> POWER HISTORY</span>
+                    <div class="d-flex align-items-center gap-2">
+                        <select id="power-range" class="form-select form-select-sm bg-black text-light border-secondary" style="max-width: 150px;">
+                            <option value="1">Last 1 hour</option>
+                            <option value="6" selected>Last 6 hours</option>
+                            <option value="24">Last 24 hours</option>
+                            <option value="72">Last 3 days</option>
+                            <option value="168">Last 7 days</option>
+                            <option value="720">Last 30 days</option>
+                        </select>
+                        <button class="btn btn-sm btn-outline-success" id="power-refresh-btn" onclick="loadPowerHistory()">
+                            <i class="bi bi-arrow-clockwise"></i> Refresh
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="power-status" class="text-muted small mb-2">Loading…</div>
+                    <div class="row g-3">
+                        <div class="col-md-6"><small class="text-muted text-uppercase">Battery Voltage</small>
+                            <div class="border border-secondary bg-black" style="height:200px; position:relative;"><canvas id="pchart-battv"></canvas></div></div>
+                        <div class="col-md-6"><small class="text-muted text-uppercase">State of Charge</small>
+                            <div class="border border-secondary bg-black" style="height:200px; position:relative;"><canvas id="pchart-soc"></canvas></div></div>
+                        <div class="col-md-6"><small class="text-muted text-uppercase">Solar Panel — Volts &amp; Watts</small>
+                            <div class="border border-secondary bg-black" style="height:200px; position:relative;"><canvas id="pchart-solar"></canvas></div></div>
+                        <div class="col-md-6"><small class="text-muted text-uppercase">Battery Current (signed)</small>
+                            <div class="border border-secondary bg-black" style="height:200px; position:relative;"><canvas id="pchart-batti"></canvas></div></div>
+                        <div class="col-md-6"><small class="text-muted text-uppercase">Battery Power (signed)</small>
+                            <div class="border border-secondary bg-black" style="height:200px; position:relative;"><canvas id="pchart-battp"></canvas></div></div>
+                        <div class="col-md-6"><small class="text-muted text-uppercase">MPPT Currents — Charge &amp; LOAD</small>
+                            <div class="border border-secondary bg-black" style="height:200px; position:relative;"><canvas id="pchart-mppti"></canvas></div></div>
+                        <div class="col-md-6"><small class="text-muted text-uppercase">Charge State (timeline)</small>
+                            <div class="border border-secondary bg-black" style="height:200px; position:relative;"><canvas id="pchart-cs"></canvas></div></div>
+                        <div class="col-md-6"><small class="text-muted text-uppercase">Errors &amp; Direct Loads</small>
+                            <div class="border border-secondary bg-black" style="height:200px; position:relative;"><canvas id="pchart-misc"></canvas></div></div>
+                    </div>
+                    <small class="text-muted d-block mt-2" id="power-summary"></small>
+                </div>
+            </div>
+        </div>
+
+        <!-- CALIBRATION TAB (SPEC-034) -->
+        <div class="tab-pane fade" id="cal" role="tabpanel" aria-labelledby="cal-tab">
+            <div class="text-end mb-2">
+                <span class="badge bg-warning text-dark" title="Calibration sends commands directly to the Main bridge HTTP proxy (port 5051) over the 4G uplink. LoRa cannot carry the interactive command/response traffic.">
+                    <i class="bi bi-router-fill"></i> Transport: 4G
+                </span>
+            </div>
+            <div class="row">
+                <div class="col-lg-8">
+                    <!-- EC (Atlas EZO-EC) calibration card -->
+                    <div class="card bg-dark border-info mb-4">
+                        <div class="card-header border-info text-info fw-bold d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-droplet-half"></i> EC / Salinity — Atlas EZO-EC</span>
+                            <span class="badge bg-secondary" id="cal-ec-status">CAL: ?</span>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted small mb-3">
+                                Conductivity probe calibration. Follow the steps <strong>in order</strong> — Dry first, then Low, then High.
+                                The probe should sit in each standard solution for 1–2 minutes before issuing the command.
+                                Rinse with deionised water between Low and High standards.
+                            </p>
+
+                            <!-- Live readings -->
+                            <div class="bg-black border border-secondary p-2 mb-3 font-monospace small">
+                                <div><span class="text-muted">Live EC:</span>  <span class="text-info" id="cal-ec-live">--</span> µS/cm</div>
+                                <div><span class="text-muted">Live SAL:</span> <span class="text-info" id="cal-sal-live">--</span> PSU</div>
+                                <button class="btn btn-outline-info btn-sm mt-2" onclick="ecCalReadLive()">Refresh live reading</button>
+                            </div>
+
+                            <!-- Step 1: Dry -->
+                            <div class="mb-3 pb-3 border-bottom border-secondary">
+                                <h6 class="text-info">Step 1 — Dry calibration</h6>
+                                <p class="text-muted small mb-2">Probe must be <strong>completely dry, out of any liquid</strong>. Required first; sets the open-circuit baseline.</p>
+                                <button class="btn btn-warning" onclick="ecCalSend('Cal,dry', 1500, this)">Run <code>Cal,dry</code></button>
+                            </div>
+
+                            <!-- Step 2: Low point -->
+                            <div class="mb-3 pb-3 border-bottom border-secondary">
+                                <h6 class="text-info">Step 2 — Low point</h6>
+                                <p class="text-muted small mb-2">Submerge probe in <strong>12,880 µS/cm</strong> calibration standard. Wait ~1 min for the live reading to stabilise.</p>
+                                <div class="input-group input-group-sm" style="max-width: 360px;">
+                                    <span class="input-group-text bg-dark text-white border-secondary">µS/cm</span>
+                                    <input type="number" class="form-control bg-dark text-white border-secondary" id="cal-ec-low-val" value="12880" min="1">
+                                    <button class="btn btn-warning" onclick="ecCalSend('Cal,low,' + document.getElementById('cal-ec-low-val').value, 1500, this)">Run <code>Cal,low,N</code></button>
+                                </div>
+                            </div>
+
+                            <!-- Step 3: High point -->
+                            <div class="mb-3 pb-3 border-bottom border-secondary">
+                                <h6 class="text-info">Step 3 — High point</h6>
+                                <p class="text-muted small mb-2"><strong>Rinse probe with deionised water first.</strong> Then submerge in <strong>80,000 µS/cm</strong> standard. Wait ~1 min.</p>
+                                <div class="input-group input-group-sm" style="max-width: 360px;">
+                                    <span class="input-group-text bg-dark text-white border-secondary">µS/cm</span>
+                                    <input type="number" class="form-control bg-dark text-white border-secondary" id="cal-ec-high-val" value="80000" min="1">
+                                    <button class="btn btn-warning" onclick="ecCalSend('Cal,high,' + document.getElementById('cal-ec-high-val').value, 1500, this)">Run <code>Cal,high,N</code></button>
+                                </div>
+                            </div>
+
+                            <!-- Step 4: Enable salinity output -->
+                            <div class="mb-3 pb-3 border-bottom border-secondary">
+                                <h6 class="text-info">Step 4 — Enable salinity output</h6>
+                                <p class="text-muted small mb-2">Adds the <code>S</code> field (PSU 0–42) to the probe's reading. EZO output stays the same otherwise.</p>
+                                <button class="btn btn-success" onclick="ecCalSend('O,S,1', 600, this)">Run <code>O,S,1</code></button>
+                                <button class="btn btn-outline-secondary btn-sm ms-2" onclick="ecCalSend('O,S,0', 600, this)">Disable (<code>O,S,0</code>)</button>
+                                <button class="btn btn-outline-info btn-sm ms-2" onclick="ecCalSend('O,?', 600, this)">Show enabled outputs</button>
+                            </div>
+
+                            <!-- Step 5: Verify / dangerous -->
+                            <div class="mb-3">
+                                <h6 class="text-info">Step 5 — Verify &amp; tools</h6>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <button class="btn btn-outline-info btn-sm" onclick="ecCalSend('Cal,?', 600, this)">Cal status <code>Cal,?</code></button>
+                                    <button class="btn btn-outline-info btn-sm" onclick="ecCalSend('Status', 600, this)">Probe status <code>Status</code></button>
+                                    <button class="btn btn-outline-info btn-sm" onclick="ecCalSend('i', 600, this)">Firmware info <code>i</code></button>
+                                    <button class="btn btn-outline-info btn-sm" onclick="ecCalSend('K,?', 600, this)">K-value <code>K,?</code></button>
+                                    <button class="btn btn-outline-danger btn-sm" onclick="ecCalConfirmClear(this)">Clear ALL calibration <code>Cal,clear</code></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right column: live console of EC command history -->
+                <div class="col-lg-4">
+                    <div class="card bg-dark border-secondary">
+                        <div class="card-header border-secondary text-white fw-bold d-flex justify-content-between align-items-center">
+                            <span>EC console</span>
+                            <button class="btn btn-outline-secondary btn-xs py-0 px-2" style="font-size:0.7rem;" onclick="document.getElementById('cal-ec-console').innerHTML=''">clear</button>
+                        </div>
+                        <div class="card-body bg-black" style="height: 500px; overflow-y: auto; font-family: monospace; font-size: 0.78rem;">
+                            <div id="cal-ec-console" class="text-success">
+                                &gt; Ready. Pick a step above.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DO (optical, DFRobot-distributed Modbus RTU) calibration card -->
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="card bg-dark border-info mb-4">
+                        <div class="card-header border-info text-info fw-bold d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-water"></i> Dissolved Oxygen — DFRobot optical (Modbus RTU)</span>
+                            <span class="badge bg-secondary" id="cal-do-status">DO: ?</span>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted small mb-3">
+                                Two-point fluorescence-quenching probe. Calibration writes to register <code>0x1010</code> (NVM-persistent).
+                                The protocol exposes salinity (<code>0x1020</code>) and atmospheric pressure (<code>0x1022</code>) so the
+                                sensor can compensate its mg/L output. <strong>Always remove the black rubber protective cover before measuring.</strong>
+                            </p>
+
+                            <!-- Live readout -->
+                            <div class="bg-black border border-secondary p-2 mb-3 font-monospace small">
+                                <div><span class="text-muted">DO saturation:</span> <span class="text-info" id="cal-do-sat">--</span> %</div>
+                                <div><span class="text-muted">DO concentration:</span> <span class="text-info" id="cal-do-mgL">--</span> mg/L</div>
+                                <div><span class="text-muted">Water temp:</span> <span class="text-info" id="cal-do-wtemp">--</span> °C</div>
+                                <button class="btn btn-outline-info btn-sm mt-2" onclick="doCalSend('DO:READ', this)">Refresh live reading</button>
+                            </div>
+
+                            <!-- Step 1: 100% saturation calibration -->
+                            <div class="mb-3 pb-3 border-bottom border-secondary">
+                                <h6 class="text-info">Step 1 — 100 % saturation</h6>
+                                <p class="text-muted small mb-2">
+                                    Pick whichever of the three is easiest. All three produce the same
+                                    saturated-air environment the optical probe needs. Writes <code>0x0002 → 0x1010</code>.
+                                </p>
+                                <ul class="text-muted small mb-2">
+                                    <li><strong>Field method (deployed buoy):</strong> lift the probe out of the ocean until the optical face is <strong>1–5 cm above the water surface</strong>. Shake off droplets. The air above the sea is naturally water-saturated and at exact sea-level atmospheric pressure — these are the canonical conditions.</li>
+                                    <li><strong>Bucket method (lab quick):</strong> half-fill a jar with tap water, hold probe ~1 cm above the surface inside the jar with a loose lid. Wait ~5 min for the headspace to equilibrate.</li>
+                                    <li><strong>Datasheet method (lab strict):</strong> aerate distilled water for 1 hour with an air pump, sit 30 min, hold probe ~1 cm above. Most accurate but slow.</li>
+                                </ul>
+                                <p class="text-muted small mb-2">Wait for the live <em>DO saturation</em> reading above to stabilise (1–2 min) at a value <strong>near 100 %</strong>, then press the button.</p>
+                                <button class="btn btn-success" onclick="doCalSend('DO:CAL:SAT', this)">Calibrate 100 % sat</button>
+                            </div>
+
+                            <!-- Step 2: zero point -->
+                            <div class="mb-3 pb-3 border-bottom border-secondary">
+                                <h6 class="text-info">Step 2 — Zero point</h6>
+                                <p class="text-muted small mb-2">
+                                    Prepare zero-oxygen solution: <strong>5 g anhydrous Na₂SO₃ + 95 g distilled water</strong>, let sit 1 hour.
+                                    Submerge probe, stir gently, wait for reading to drop and stabilise (1–2 min). Writes <code>0x0001 → 0x1010</code>.
+                                </p>
+                                <button class="btn btn-success" onclick="doCalSend('DO:CAL:ZERO', this)">Calibrate zero</button>
+                            </div>
+
+                            <!-- Compensation: salinity -->
+                            <div class="mb-3 pb-3 border-bottom border-secondary">
+                                <h6 class="text-info">Salinity compensation (register <code>0x1020</code>)</h6>
+                                <p class="text-muted small mb-2">Set the salinity the probe should assume when converting sat % → mg/L. Default 30 ‰ for seawater; set to 0 for fresh-water lab work.</p>
+                                <div class="input-group input-group-sm" style="max-width: 360px;">
+                                    <span class="input-group-text bg-dark text-white border-secondary">‰</span>
+                                    <input type="number" class="form-control bg-dark text-white border-secondary" id="cal-do-sal-val" value="30" min="0" max="42">
+                                    <button class="btn btn-warning" onclick="doCalSend('DO:SAL:SET:' + document.getElementById('cal-do-sal-val').value, this)">Set</button>
+                                    <button class="btn btn-outline-info" onclick="doCalSend('DO:SAL:GET', this, {into:'cal-do-sal-val', field:'salinity_ppt'})">Read</button>
+                                </div>
+                            </div>
+
+                            <!-- Compensation: atmospheric pressure -->
+                            <div class="mb-3 pb-3 border-bottom border-secondary">
+                                <h6 class="text-info">Atmospheric pressure (register <code>0x1022</code>)</h6>
+                                <p class="text-muted small mb-2">Stored as <strong>kPa × 100</strong>. Sea-level default = <code>10133</code> (101.33 kPa). Adjust for altitude or local barometric reading.</p>
+                                <div class="input-group input-group-sm" style="max-width: 360px;">
+                                    <span class="input-group-text bg-dark text-white border-secondary">kPa×100</span>
+                                    <input type="number" class="form-control bg-dark text-white border-secondary" id="cal-do-press-val" value="10133" min="0" max="65535">
+                                    <button class="btn btn-warning" onclick="doCalSend('DO:PRESS:SET:' + document.getElementById('cal-do-press-val').value, this)">Set</button>
+                                    <button class="btn btn-outline-info" onclick="doCalSend('DO:PRESS:GET', this, {into:'cal-do-press-val', field:'pressure_x100'})">Read</button>
+                                </div>
+                            </div>
+
+                            <!-- Diagnostics -->
+                            <div class="mb-3">
+                                <h6 class="text-info">Diagnostics</h6>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <button class="btn btn-outline-info btn-sm" onclick="doCalSend('DO:ADDR:GET', this)">Read Modbus addr <code>0x07D0</code></button>
+                                    <button class="btn btn-outline-info btn-sm" onclick="doCalSend('DO:BAUD:GET', this)">Read baud index <code>0x07D1</code></button>
+                                </div>
+                                <p class="text-muted small mt-2 mb-0">Baud index: 0=2400, 1=4800 (default), 2=9600, 3=19200, 4=38400, 5=57600, 6=115200.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right column: DO console -->
+                <div class="col-lg-4">
+                    <div class="card bg-dark border-secondary">
+                        <div class="card-header border-secondary text-white fw-bold d-flex justify-content-between align-items-center">
+                            <span>DO console</span>
+                            <button class="btn btn-outline-secondary btn-xs py-0 px-2" style="font-size:0.7rem;" onclick="document.getElementById('cal-do-console').innerHTML=''">clear</button>
+                        </div>
+                        <div class="card-body bg-black" style="height: 500px; overflow-y: auto; font-family: monospace; font-size: 0.78rem;">
+                            <div id="cal-do-console" class="text-success">
+                                &gt; Ready. Remove rubber cover before measuring.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DEBUG TAB (SPEC-033) -->
+        <div class="tab-pane fade" id="debug" role="tabpanel" aria-labelledby="debug-tab">
+            <div class="text-end mb-2">
+                <span class="badge bg-warning text-dark" title="Debug pin commands go over the 4G uplink to the Main bridge HTTP proxy. Bench-testing only — no safety guards.">
+                    <i class="bi bi-router-fill"></i> Transport: 4G
+                </span>
+            </div>
+            <div class="card bg-dark border-warning mb-4">
+                <div class="card-header border-warning text-warning fw-bold">
+                    DEBUG / PIN TOGGLE — bench testing only (no safety guards)
+                </div>
+                <div class="card-body">
+                    <h6 class="text-warning">UV Relay (Main Mega · Pin 4)</h6>
+                    <div class="d-flex gap-2 mb-3">
+                        <button class="btn btn-success" onclick="debugUv('ON')">UV ON</button>
+                        <button class="btn btn-secondary" onclick="debugUv('OFF')">UV OFF</button>
+                    </div>
+                    <div class="text-muted small mb-2">Last reply:</div>
+                    <pre id="debug-log" class="bg-black text-info p-2 border border-secondary small" style="min-height: 80px; max-height: 240px; overflow-y: auto;">(none)</pre>
+                </div>
+            </div>
+
+            <!-- LORA REMOTE SHELL (SPEC-026) -->
+            <div class="card bg-dark border-danger mb-4 admin-only">
+                <div class="card-header border-danger text-danger fw-bold">
+                    <i class="bi bi-terminal"></i> LORA REMOTE SHELL (SPEC-026)
+                </div>
+                <div class="card-body">
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-3">
+                            <select id="shell-target" class="form-select form-select-sm bg-black text-light border-secondary">
+                                <option value="main">Main (System A)</option>
+                                <option value="health">Health (System B)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-7">
+                            <input type="text" id="shell-cmd" class="form-control form-control-sm bg-black text-light border-secondary" placeholder="e.g. uptime">
+                        </div>
+                        <div class="col-md-2">
+                            <button class="btn btn-danger btn-sm w-100" id="btn-shell-exec" onclick="executeShell()">Execute</button>
+                        </div>
+                    </div>
+                    <div class="text-muted small mb-2">Command History & Output:</div>
+                    <pre id="shell-log" class="bg-black text-danger p-2 border border-secondary small" style="min-height: 120px; max-height: 300px; overflow-y: auto;">(none)</pre>
+                    <div class="text-muted small">
+                        <strong>Whitelist:</strong> nmcli, ip addr, ip route, ping -c, systemctl * oceanpulse, reboot, uptime, free -m, df -h, lsusb, tail -n 5 *.log
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MANUAL TAB (admin-only, served from ops/SYSTEM_MANUAL.md) -->
+        <div class="tab-pane fade" id="manual" role="tabpanel" aria-labelledby="manual-tab">
+            <div class="card bg-dark border-info mb-4">
+                <div class="card-header border-info text-info fw-bold d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <span><i class="bi bi-book"></i> SYSTEM OPERATIONS &amp; DEBUG MANUAL</span>
+                    <div class="d-flex align-items-center gap-2">
+                        <input type="search" id="manual-search" class="form-control form-control-sm bg-black text-light border-secondary" placeholder="filter sections..." style="max-width: 240px;">
+                        <button class="btn btn-sm btn-outline-info" id="manual-refresh-btn" onclick="loadManual(true)">
+                            <i class="bi bi-arrow-clockwise"></i> Refresh
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div id="manual-status" class="text-muted small px-3 pt-3"></div>
+                    <div class="row g-0">
+                        <aside class="col-md-3 border-end border-secondary" style="max-height: 75vh; overflow-y: auto;">
+                            <nav id="manual-toc" class="p-3 small"></nav>
+                        </aside>
+                        <article id="manual-content" class="col-md-9 manual-md p-4 text-light" style="max-height: 75vh; overflow-y: auto;"></article>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/static/js/dashboard.js?v=20260606-UV-LOGIC-ANALYZER"></script>
+</body>
+</html>

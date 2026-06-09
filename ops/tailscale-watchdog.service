@@ -1,0 +1,11 @@
+[Unit]
+Description=OceanPulse Tailscale Connectivity Watchdog
+After=network-online.target tailscaled.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/opt/oceanpulse/ops/tailscale_watchdog.sh
+
+[Install]
+WantedBy=multi-user.target

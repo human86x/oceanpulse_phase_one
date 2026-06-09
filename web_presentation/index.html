@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OceanPulse: Port Sentry Buoy - Virtual Model</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link href="assets/css/style.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-ocean-dark fixed-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <span style="color:var(--ocean-orange)">Ocean</span>Pulse <small class="text-muted">| Virtual Twin v1.0</small>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="hero-section text-center text-white d-flex align-items-center justify-content-center">
+        <div class="container">
+            <h1 class="display-4 fw-bold">Port Sentry Buoy (Phase 1)</h1>
+            <p class="lead">Autonomous Oil Spill Detection & Marine Telemetry</p>
+            <div class="mt-4">
+                <span class="badge bg-success me-2">Autonomy: ~3 Days (Winter)</span>
+                <span class="badge bg-primary me-2">Dual-Redundant</span>
+                <span class="badge bg-warning text-dark">Budget: < €1.8k</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container mt-5">
+        
+        <!-- Tabs -->
+        <ul class="nav nav-tabs" id="myTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="oil-tab" data-bs-toggle="tab" data-bs-target="#oil" type="button" role="tab">Oil Detection System</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="diagram-tab" data-bs-toggle="tab" data-bs-target="#diagram" type="button" role="tab">System Architecture</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="power-tab" data-bs-toggle="tab" data-bs-target="#power" type="button" role="tab">Power Simulator</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="guardian-tab" data-bs-toggle="tab" data-bs-target="#guardian" type="button" role="tab">Project Guardian (Rescue)</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="bom-tab" data-bs-toggle="tab" data-bs-target="#bom" type="button" role="tab">Bill of Materials</button>
+            </li>
+        </ul>
+
+        <div class="tab-content p-4 border border-top-0 bg-white shadow-sm" id="myTabContent">
+            
+            <!-- TAB: Oil Detection System -->
+            <div class="tab-pane fade show active" id="oil" role="tabpanel">
+                <h3 class="mb-4">Hybrid Spectral Sentry & Safety System</h3>
+                
+                <div class="row mb-5">
+                    <div class="col-lg-12">
+                        <div class="card">
+                            <div class="card-header bg-danger text-white">
+                                <h5 class="m-0">Safety Architecture: The "Triple Lock"</h5>
+                            </div>
+                            <div class="card-body">
+                                <p>Hardware-enforced safety logic to prevent UV exposure to humans or wildlife.</p>
+                                <div class="text-center">
+<svg viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg" style="max-width: 100%; height: auto;">
+  <!-- Styles -->
+  <style>
+    .box { fill: #fff; stroke: #333; stroke-width: 2px; }
+    .sensor { fill: #ffebee; } /* Red-ish for inputs */
+    .logic { fill: #e3f2fd; }  /* Blue-ish for logic */
+    .actuator { fill: #fff3e0; } /* Orange-ish for outputs */
+    .text { font-family: sans-serif; font-size: 14px; text-anchor: middle; dominant-baseline: middle; }
+    .arrow { stroke: #333; stroke-width: 2px; marker-end: url(#arrowhead); }
+  </style>
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#333" />
+    </marker>
+  </defs>
+
+  <!-- Sensors (Left) -->
+  <rect x="50" y="50" width="150" height="50" class="box sensor" rx="5" />
+  <text x="125" y="75" class="text">PIR Sensors (x3)</text>
+
+  <rect x="50" y="150" width="150" height="50" class="box sensor" rx="5" />
+  <text x="125" y="175" class="text">Ultrasonic Veto</text>
+
+  <rect x="50" y="250" width="150" height="50" class="box sensor" rx="5" />
+  <text x="125" y="275" class="text">Camera Check</text>
+
+  <!-- Logic (Center) -->
+  <rect x="300" y="100" width="200" height="150" class="box logic" rx="5" />
+  <text x="400" y="145" class="text" font-weight="bold">Raspberry Pi 5</text>
+  <text x="400" y="165" class="text" font-size="12px" fill="#555">(Vision & Decisions)</text>
+  
+  <line x1="320" y1="180" x2="480" y2="180" stroke="#999" stroke-width="1" />
+  
+  <text x="400" y="205" class="text" font-weight="bold">Arduino Mega</text>
+  <text x="400" y="225" class="text" font-size="12px" fill="#555">(Sensors & Relays IO)</text>
+
+  <!-- Hardware Veto -->
+  <rect x="300" y="300" width="200" height="50" class="box logic" rx="5" stroke-dasharray="5,5" />
+  <text x="400" y="325" class="text">NE555 Timer (0.5s)</text>
+
+  <!-- Actuators (Right) -->
+  <rect x="600" y="50" width="150" height="50" class="box actuator" rx="5" />
+  <text x="675" y="75" class="text">Amber Strobe</text>
+
+  <rect x="600" y="150" width="150" height="50" class="box actuator" rx="5" />
+  <text x="675" y="175" class="text">Botnroll 30A Relay</text>
+
+  <rect x="600" y="250" width="150" height="50" class="box actuator" rx="5" />
+  <text x="675" y="275" class="text">Inverter + UV Light</text>
+
+  <!-- Connections -->
+  <!-- Inputs to Pi -->
+  <line x1="200" y1="75" x2="300" y2="120" class="arrow" />
+  <line x1="200" y1="175" x2="300" y2="175" class="arrow" />
+  <line x1="200" y1="275" x2="300" y2="230" class="arrow" />
+
+  <!-- Pi to Outputs -->
+  <line x1="500" y1="120" x2="600" y2="75" class="arrow" /> <!-- To Strobe -->
+  
+  <!-- Pi to Timer to Relay -->
+  <line x1="400" y1="250" x2="400" y2="300" class="arrow" /> <!-- Pi to Timer -->
+  <path d="M 500 325 L 550 325 L 550 175 L 600 175" class="arrow" fill="none" stroke="#333" stroke-width="2" /> <!-- Timer to Relay -->
+
+  <!-- Relay to Light -->
+  <line x1="675" y1="200" x2="675" y2="250" class="arrow" /> 
+
+</svg>
+</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-5">
+                    <div class="col-lg-12">
+                        <div class="card">
+                            <div class="card-header bg-dark text-white">Firmware Logic (Python + Hardware)</div>
+                            <div class="card-body">
+                                <p class="text-muted small">Sequential execution flow of the safety-interlocked capture process.</p>
+                                <div class="mermaid-container">
+                                    <pre class="mermaid">
+sequenceDiagram
+    participant PIR as PIR Sensors
+    participant SONAR as Ultrasonic Veto
+    participant CAM as Pi Camera
+    participant PI as Python Logic
+    participant STROBE as Amber Beacon
+    participant TIMER as 555 Timer
+    participant UV as UV Array
+
+    Note over PI: WAKE UP
+    
+    PI->>PIR: Check Human Heat
+    Note right of PIR: Safety Check 1
+    
+    PI->>SONAR: Check Distance
+    Note right of SONAR: Safety Check 2
+    
+    PI->>CAM: Capture Visual Frame
+    Note right of CAM: Safety Check 3 (Nav Lights)
+    
+    Note over PI: IF ALL SAFETY CHECKS PASS
+    
+    PI->>STROBE: FLASH ON (2 Seconds)
+    Note right of STROBE: WARNING BEACON
+    PI->>STROBE: FLASH OFF
+    
+    PI->>TIMER: Trigger UV Pulse
+    PI->>CAM: Open Shutter
+    
+    TIMER->>UV: Hard Pulse (Max 0.5s)
+    Note right of UV: 40W FLASH
+    
+    CAM->>PI: Image Captured
+    PI->>PI: Process for Oil
+                                    </pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="card h-100">
+                            <div class="card-header bg-ocean-orange text-white">Specific Hardware List (Oil Detection circuit only)</div>
+                            <div class="card-body">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Item</th>
+                                            <th>Est. Cost</th>
+                                            <th>Role</th>
+                                            <th>Source</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="oilBOMBody">
+                                        <!-- Dynamically populated from OIL_DETECTION_DATA in app.js -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: Project Guardian (Rescue) -->
+            <div class="tab-pane fade" id="guardian" role="tabpanel">
+                <h3 class="mb-4 text-primary">Project Guardian: Search & Rescue Support</h3>
+                <p class="lead text-muted mb-5">Leveraging the OceanPulse network to reduce rescue times and operational risks for the Bombeiros & ISN.</p>
+
+                <div class="row g-4">
+                    <!-- Feature A -->
+                    <div class="col-md-4">
+                        <div class="card h-100 border-primary">
+                            <div class="card-header bg-primary text-white text-center">
+                                <h5>Fisherman's Fob</h5>
+                            </div>
+                            <div class="card-body text-center">
+                                <div class="display-4 mb-3">🆘</div>
+                                <h5>LoRa Panic Button</h5>
+                                <p class="card-text">A rugged, low-cost (&lt;€15) beacon for local percebes pickers.</p>
+                                <ul class="text-start small">
+                                    <li><strong>Blind Spot Comms:</strong> Works under cliffs where cell phones fail.</li>
+                                    <li><strong>Instant Alert:</strong> Sends GPS + ID directly to the mesh.</li>
+                                    <li><strong>"Man Down":</strong> Accelerometer detection for falls.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Feature B -->
+                    <div class="col-md-4">
+                        <div class="card h-100 border-info">
+                            <div class="card-header bg-info text-dark text-center">
+                                <h5>Drift Vector API</h5>
+                            </div>
+                            <div class="card-body text-center">
+                                <div class="display-4 mb-3">🌊</div>
+                                <h5>Live Search Grids</h5>
+                                <p class="card-text">Replacing static models with real-time sensor data.</p>
+                                <ul class="text-start small">
+                                    <li><strong>Input:</strong> Real-time Current Speed, Direction & Wind.</li>
+                                    <li><strong>Output:</strong> 60-min "Probability Cone" for Man-Overboard scenarios.</li>
+                                    <li><strong>Value:</strong> Shrinks the search radius, saving helicopter time (€3k/hr).</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Feature C -->
+                    <div class="col-md-4">
+                        <div class="card h-100 border-danger">
+                            <div class="card-header bg-danger text-white text-center">
+                                <h5>Cliff Sentry</h5>
+                            </div>
+                            <div class="card-body text-center">
+                                <div class="display-4 mb-3">👁️</div>
+                                <h5>Thermal Perimeter</h5>
+                                <p class="card-text">Automated monitoring of "No Go" zones during storms.</p>
+                                <ul class="text-start small">
+                                    <li><strong>Tech:</strong> Thermal/IR cameras on coastal nodes.</li>
+                                    <li><strong>Detection:</strong> Identifies heat signatures in restricted areas at night.</li>
+                                    <li><strong>Prevention:</strong> Early warning before an accident occurs.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert alert-secondary mt-5 text-center">
+                    <strong>Integration Goal:</strong> All data feeds directly into a unified "Command Dashboard" for the Vila do Bispo Bombeiros.
+                </div>
+            </div>
+
+            <!-- TAB 1: Architecture Diagram -->
+            <div class="tab-pane fade" id="diagram" role="tabpanel">
+                <div class="row">
+                    <div class="col-lg-8">
+                        <h4 class="mb-3">Interactive Schematic</h4>
+                        <p class="text-muted small">Hover over nodes to see component details.</p>
+                        <div class="mermaid-container">
+                            <pre class="mermaid" id="buoyDiagram">
+graph TD
+    %% ==========================================
+    %% CENTRAL POWER BANK
+    %% ==========================================
+    subgraph PowerBank[Central Power Source]
+        Solar["Solar Panel Array
+2x 50W Parallel"] --> MPPT["MPPT Controller
+15A"]
+        MPPT --> Batt["LiFePO4 Battery
+12V 40Ah-60Ah"]
+        Batt ==> MainBus((12V Common Bus))
+    end
+    
+    %% ==========================================
+    %% SYSTEM A: OIL DETECTION CORE
+    %% ==========================================
+    subgraph SysA[SYSTEM A: OIL DETECTION CORE]
+        MainBus --> RelayB_Contact["NC Relay B Contact"]
+        RelayB_Contact --> BuckA["5V Buck Converter A"]
+        BuckA ==> Pi5["Raspberry Pi 5
+(Vision Processing)"]
+        BuckA ==> ArdA["Arduino A
+(Strobe Control)"]
+        
+        Pi5 -- CSI --> Cam["Pi Camera 3
+IMX378 Sensor"]
+        Pi5 -- USB --> ArdA
+        
+        ArdA -- Relay --> UV_Relay["Relay / SSR"]
+        UV_Relay --> UV_LED["100W UV Floodlight
+365nm Strobe (Oil Excitation)"]
+        
+        subgraph WaterSensors[Underwater Sensors]
+            DO["Dissolved Oxygen"] --> ArdA
+            Sal["Salinity Inductive"] --> ArdA
+            TempA["Water Temp"] --> ArdA
+            Depth["Depth Sensor"] --> ArdA
+        end
+        
+        Pi5 -- SPI --> LoRaA["LoRa Module A"]
+        ArdA -- Digital --> RelayA_Coil["Relay A Coil"]
+    end
+    
+    %% ==========================================
+    %% SYSTEM B: HEALTH & REDUNDANCY
+    %% ==========================================
+    subgraph SysB[SYSTEM B: HEALTH & REDUNDANCY]
+        MainBus --> RelayA_Contact["NC Relay A Contact"]
+        RelayA_Contact --> BuckB["5V Buck Converter B"]
+        BuckB ==> Pi3["Raspberry Pi 3
+(Watchdog)"]
+        BuckB ==> ArdB["Arduino B"]
+        
+        Pi3 -- USB --> ArdB
+        
+        subgraph InternalSensors[Internal Health]
+            Hum["Humidity/Temp"] --> ArdB
+            Leak["Bilge Switch"] --> ArdB
+        end
+        
+        Pi3 -- SPI --> LoRaB["LoRa Module B"]
+        ArdB -- Digital --> RelayB_Coil["Relay B Coil"]
+    end
+    
+    RelayA_Coil -.->|Cuts Power| RelayA_Contact
+    RelayB_Coil -.->|Cuts Power| RelayB_Contact
+
+    classDef pwr fill:#f96,stroke:#333,stroke-width:2px;
+    classDef sbc fill:#69f,stroke:#333,stroke-width:2px,color:white;
+    classDef mcu fill:#6f9,stroke:#333,stroke-width:2px;
+    classDef sens fill:#eee,stroke:#333,stroke-width:1px,stroke-dasharray: 5 5;
+    classDef relay fill:#f66,stroke:#333,stroke-width:2px,color:white;
+    classDef uv fill:#8a2be2,stroke:#333,stroke-width:2px,color:white;
+    
+    class Solar,MPPT,Batt,MainBus,BuckA,BuckB pwr;
+    class Pi5,Pi3 sbc;
+    class ArdA,ArdB mcu;
+    class WaterSensors,InternalSensors sens;
+    class RelayA_Coil,RelayB_Coil,RelayA_Contact,RelayB_Contact,UV_Relay relay;
+    class UV_LED uv;
+                            </pre>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="card info-panel">
+                            <div class="card-header bg-ocean-orange text-white">Component Details</div>
+                            <div class="card-body" id="nodeInfo">
+                                <p class="text-center text-muted"><em>Hover over a schematic element to see specs, costs, and details here.</em></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: Power Simulator -->
+            <div class="tab-pane fade" id="power" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h4>Simulation Controls</h4>
+                        <div class="mb-3">
+                            <label class="form-label">Solar Conditions</label>
+                            <select class="form-select" id="seasonSelect">
+                                <option value="winter">Winter (Sagres) - 2.5 PSH</option>
+                                <option value="summer">Summer (Sagres) - 7.0 PSH</option>
+                                <option value="storm">Storm Mode (0.5 PSH)</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Battery Capacity (Ah)</label>
+                            <input type="range" class="form-range" min="20" max="100" value="50" id="battRange" oninput="updatePowerCalc()">
+                            <span id="battVal">50 Ah</span>
+                        </div>
+                        <hr>
+                        <h5>Daily Energy Budget</h5>
+                        <ul class="list-group list-group-flush" id="powerStats">
+                            <!-- JS will populate -->
+                        </ul>
+                    </div>
+                    <div class="col-md-6 d-flex align-items-center justify-content-center">
+                        <div class="text-center">
+                            <h1 class="display-1 fw-bold" id="autonomyDisplay">3.5</h1>
+                            <p class="lead">Days of Autonomy</p>
+                            <div class="progress mt-3" style="height: 30px;">
+                                <div id="battBar" class="progress-bar bg-success" role="progressbar" style="width: 100%;">100%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: Bill of Materials -->
+            <div class="tab-pane fade" id="bom" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
+                    <h4>Full Project Procurement (Detailed)</h4>
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-outline-secondary btn-sm active" id="btn-all" onclick="filterBOM('all')">All Items</button>
+                        <button type="button" class="btn btn-outline-success btn-sm" id="btn-basic" onclick="filterBOM('basic')">Basic Setup</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" id="btn-advanced" onclick="filterBOM('advanced')">Advanced Mode</button>
+                    </div>
+                    <button type="button" class="btn btn-warning btn-sm fw-bold ms-2" id="saveBtn" onclick="saveBOM()">💾 Save Config</button>
+                    <button type="button" class="btn btn-outline-danger btn-sm ms-2" onclick="resetBOM()">🔄 Reset Defaults</button>
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover" id="bomTable">
+                        <thead class="table-dark">
+                            <tr>
+                                <th style="width: 40px;"></th>
+                                <th style="width: 140px;">Tier</th>
+                                <th>Item Name</th>
+                                <th>Est. Cost</th>
+                                <th>Status</th>
+                                <th>Link/Source</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bomTableBody">
+                            <!-- Hierarchical Categories injected via JS -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="text-end mt-3">
+                    <h4 id="totalLabel">Total Estimated Investment:</h4>
+                    <h3 class="text-ocean-orange" id="totalAmount">€0.00</h3>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <footer class="text-center py-4 text-muted mt-5">
+        &copy; 2025 OceanPulse.pt
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+    </script>
+    <script src="assets/js/app.js?v=8"></script>
+</body>
+</html>

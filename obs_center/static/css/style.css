@@ -1,0 +1,235 @@
+:root {
+    --op-bg: #0b0e14;
+    --op-card: #151922;
+    --op-text: #e0e0e0;
+    --op-accent: #00ff41; /* Terminal Green */
+    --op-alert: #ff3333;
+}
+
+body.dark-theme {
+    background-color: var(--op-bg);
+    color: var(--op-text);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.navbar {
+    box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+}
+
+.card {
+    background-color: var(--op-card);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+
+.card-header {
+    background-color: rgba(0,0,0,0.2);
+    border-bottom: 1px solid #333;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.display-4 {
+    text-shadow: 0 0 10px rgba(0, 255, 65, 0.3);
+}
+
+.font-monospace {
+    font-family: 'Courier New', Courier, monospace !important;
+    text-shadow: 0 0 5px rgba(0, 255, 65, 0.4);
+}
+
+.glow-green {
+    box-shadow: 0 0 8px rgba(0, 255, 65, 0.6);
+    text-shadow: 0 0 5px rgba(0, 255, 65, 0.8);
+}
+
+.glow-blue {
+    box-shadow: 0 0 8px rgba(13, 202, 240, 0.6);
+    text-shadow: 0 0 5px rgba(13, 202, 240, 0.8);
+}
+
+#console-log {
+    border-left: 2px solid var(--op-accent);
+    padding-left: 10px;
+}
+
+/* VISION TAB CUSTOM STYLES */
+#vision-log::-webkit-scrollbar {
+    width: 6px;
+}
+
+#vision-log::-webkit-scrollbar-track {
+    background: #000;
+}
+
+#vision-log::-webkit-scrollbar-thumb {
+    background: #444;
+    border-radius: 3px;
+}
+
+#vision-log::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+.italic {
+    font-style: italic;
+}
+
+.tiny {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+#vision-feed {
+    transition: opacity 0.3s ease-in-out;
+}
+
+.list-group-item.bg-dark.text-danger:hover {
+    background-color: #1a0505 !important;
+}
+
+/* Access Gate (SPEC-028) */
+.gate-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: linear-gradient(135deg, #0b0e14 0%, #151922 50%, #0b0e14 100%);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.4s ease;
+}
+
+.gate-box {
+    text-align: center;
+    max-width: 380px;
+    padding: 40px;
+    background: rgba(21, 25, 34, 0.95);
+    border: 1px solid #333;
+    border-radius: 12px;
+    box-shadow: 0 0 60px rgba(0, 255, 65, 0.05);
+}
+
+.gate-logo {
+    font-size: 3.5rem;
+    color: #00ff41;
+    margin-bottom: 10px;
+}
+
+.gate-box .form-control:focus {
+    border-color: #0dcaf0;
+    box-shadow: 0 0 0 2px rgba(13, 202, 240, 0.15);
+}
+
+/* Fix invisible text on dark backgrounds */
+.dark-theme .text-muted {
+    color: #9ca3af !important;
+}
+
+.dark-theme .form-check-label {
+    color: #c0c8d4 !important;
+}
+
+.dark-theme small.text-muted,
+.dark-theme label.text-muted {
+    color: #a0aab8 !important;
+}
+
+.dark-theme .card-body small {
+    color: #8892a0;
+}
+
+/* Admin-only elements in guest mode */
+.admin-only {
+    transition: opacity 0.3s ease;
+}
+
+/* Community Tab Charts (SPEC-030) */
+#community canvas {
+    max-height: 180px;
+}
+
+#c-oil-panel {
+    transition: border-color 0.4s ease;
+}
+
+#c-oil-panel-header {
+    transition: color 0.4s ease;
+}
+
+#c-oil-card {
+    transition: border-color 0.4s ease;
+}
+
+@keyframes pulse-border {
+    0%, 100% { border-color: #f44336; }
+    50% { border-color: #ff8a80; }
+}
+
+#c-oil-card.oil-detected {
+    animation: pulse-border 1.5s ease-in-out infinite;
+}
+
+/* ====== Manual tab — markdown rendering against the dark theme ====== */
+.manual-md h1 { color: #4dd0e1; border-bottom: 1px solid #2a3a47; padding-bottom: 0.3em; margin-top: 0; }
+.manual-md h2 { color: #4dd0e1; border-bottom: 1px solid #1f2a33; padding-bottom: 0.25em; margin-top: 1.6em; }
+.manual-md h3 { color: #80cbc4; margin-top: 1.2em; }
+.manual-md h4, .manual-md h5, .manual-md h6 { color: #b0bec5; margin-top: 1em; }
+.manual-md p, .manual-md li { color: #cfd8dc; line-height: 1.55; }
+.manual-md a { color: #82b1ff; }
+.manual-md a:hover { color: #b388ff; }
+.manual-md strong { color: #fff176; }
+.manual-md em { color: #ffcc80; }
+.manual-md code {
+    background: #000;
+    color: #69f0ae;
+    padding: 0.12em 0.4em;
+    border-radius: 3px;
+    font-size: 0.9em;
+}
+.manual-md pre {
+    background: #000;
+    border: 1px solid #263238;
+    border-radius: 4px;
+    padding: 0.8em 1em;
+    overflow-x: auto;
+}
+.manual-md pre code {
+    background: transparent;
+    color: #80deea;
+    padding: 0;
+    font-size: 0.88em;
+    line-height: 1.45;
+}
+.manual-md blockquote {
+    border-left: 3px solid #ff8a65;
+    background: rgba(255, 138, 101, 0.05);
+    color: #ffccbc;
+    padding: 0.4em 1em;
+    margin: 0.8em 0;
+}
+.manual-md table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0.8em 0;
+    background: #0a0e13;
+}
+.manual-md th, .manual-md td {
+    border: 1px solid #1f2a33;
+    padding: 0.45em 0.7em;
+    color: #cfd8dc;
+    vertical-align: top;
+}
+.manual-md th {
+    background: #151c25;
+    color: #80cbc4;
+    text-align: left;
+}
+.manual-md tr:hover td { background: #11161f; }
+.manual-md hr { border: 0; border-top: 1px solid #1f2a33; margin: 1.8em 0; }
+.manual-md ul, .manual-md ol { padding-left: 1.4em; }
+.manual-md li { margin-bottom: 0.25em; }
+.manual-md ul ul, .manual-md ol ol { margin-top: 0.25em; }
+#manual-toc a:hover { background: rgba(77, 208, 225, 0.08); }
+.manual-toc-item { line-height: 1.3; }

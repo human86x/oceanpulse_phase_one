@@ -1,0 +1,16 @@
+[Unit]
+Description=OceanPulse Buoy Bridge (Power Circuit — MPPT + SmartShunt VE.Direct)
+After=network.target buoy-bridge-health.service
+Wants=buoy-bridge-health.service
+
+[Service]
+Type=simple
+User=router
+WorkingDirectory=/home/router/oceanpulse/bridge
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/usr/bin/python3 buoy_bridge.py --circuit P --lora-port /dev/op-lora --mppt-port /dev/op-vedirect --shunt-port /dev/op-shunt --interval 30
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

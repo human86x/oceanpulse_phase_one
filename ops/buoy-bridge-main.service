@@ -1,0 +1,15 @@
+[Unit]
+Description=OceanPulse Buoy Bridge (Main Circuit)
+After=network.target
+
+[Service]
+Type=simple
+User=lab
+WorkingDirectory=/home/lab/oceanpulse/bridge
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/usr/bin/python3 buoy_bridge.py --circuit M --lora-port /dev/op-lora --mega-port /dev/op-mega
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
