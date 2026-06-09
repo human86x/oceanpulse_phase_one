@@ -128,6 +128,20 @@ in `ops/secrets.env`, which is gitignored. Use
 Systemd loads them via `EnvironmentFile=` (see `ops/obs-center.service`).
 Shell deploy scripts source them at the top.
 
+### Rotating credentials
+
+The dev laptop holds the master copy of `ops/secrets.env`. To rotate
+anything (passwords, FTP, Flask key, etc.), edit that file and run:
+
+```bash
+./ops/distribute_secrets.sh --dry-run   # preview what will change
+./ops/distribute_secrets.sh             # push to all nodes + restart services
+```
+
+The script syncs `secrets.env` to each node (Main Pi, Health Pi,
+Gateway, Lab Center, VPS), sets `chmod 600`, and restarts
+`obs-center.service` on the nodes that run it.
+
 ### Quickstart (on a fresh node)
 
 ```bash
