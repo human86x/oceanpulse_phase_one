@@ -1527,6 +1527,14 @@ def uv_capture():
 
         log_activity("uv_capture", f"duration:{duration}")
 
+        # UV cycle = ~12s warmup + capture window + return — give generous timeout
+        res = http_requests.post(
+            f"{VISION_SERVICE_URL}/api/uv/capture",
+            json={"duration": duration},
+            timeout=60
+        )
+        return jsonify(res.json()), res.status_code
+
     except Exception as e:
         return jsonify({"status": "error", "message": f"Vision service unreachable: {str(e)}"}), 503
 
